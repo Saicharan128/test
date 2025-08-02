@@ -1,8 +1,12 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import os
 from werkzeug.utils import secure_filename
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 CORS(app)
@@ -26,13 +30,13 @@ class Product(db.Model):
     product_name = db.Column(db.String(200))
     short_description = db.Column(db.Text)
     long_description = db.Column(db.Text)
-    mrp = db.Column(db.Float)  # Replaced Price
-    offer_price = db.Column(db.Float)  # Replaced Discount
+    mrp = db.Column(db.Float)
+    offer_price = db.Column(db.Float)
     sku = db.Column(db.String(50))
     in_stock = db.Column(db.Boolean, default=True)
     stock_number = db.Column(db.Integer)
     download_pdfs = db.Column(db.Text)
-    product_image_urls = db.Column(db.Text)  # Multiple images, comma-separated
+    product_image_urls = db.Column(db.Text)
     youtube_links = db.Column(db.Text)
     technical_information = db.Column(db.Text)
     manufacturer = db.Column(db.String(200))
@@ -68,6 +72,11 @@ with app.app_context():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
+# Serve static files explicitly (for debugging)
+@app.route('/static/uploads/<path:filename>')
+def serve_uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 # UI Routes
 @app.route('/')
 def index():
@@ -88,16 +97,24 @@ def add_product_ui():
             if image and allowed_file(image.filename):
                 filename = secure_filename(image.filename)
                 image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                image.save(image_path)
-                image_urls.append(f"/{image_path}")
+                try:
+                    image.save(image_path)
+                    image_urls.append(f"{app.config['UPLOAD_FOLDER']}/{filename}")
+                    app.logger.debug(f"Saved image: {image_path}")
+                except Exception as e:
+                    app.logger.error(f"Error saving image {filename}: {str(e)}")
 
         pdf_urls = []
         for pdf in pdfs:
             if pdf and allowed_file(pdf.filename):
                 filename = secure_filename(pdf.filename)
                 pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                pdf.save(pdf_path)
-                pdf_urls.append(f"/{pdf_path}")
+                try:
+                    pdf.save(pdf_path)
+                    pdf_urls.append(f"{app.config['UPLOAD_FOLDER']}/{filename}")
+                    app.logger.debug(f"Saved PDF: {pdf_path}")
+                except Exception as e:
+                    app.logger.error(f"Error saving PDF {filename}: {str(e)}")
 
         product = Product(
             category=data.get('category'),
@@ -119,6 +136,7 @@ def add_product_ui():
         )
         db.session.add(product)
         db.session.commit()
+        app.logger.debug(f"Added product: {product.product_name}, Image URLs: {product.product_image_urls}")
         return redirect(url_for('index'))
     
     return render_template('add_product.html')
@@ -136,16 +154,24 @@ def edit_product_ui(product_id):
             if image and allowed_file(image.filename):
                 filename = secure_filename(image.filename)
                 image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                image.save(image_path)
-                image_urls.append(f"/{image_path}")
+                try:
+                    image.save(image_path)
+                    image_urls.append(f"{app.config['UPLOAD_FOLDER']}/{filename}")
+                    app.logger.debug(f"Saved image: {image_path}")
+                except Exception as e:
+                    app.logger.error(f"Error saving image {filename}: {str(e)}")
 
         pdf_urls = product.download_pdfs.split(",") if product.download_pdfs else []
         for pdf in pdfs:
             if pdf and allowed_file(pdf.filename):
                 filename = secure_filename(pdf.filename)
                 pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                pdf.save(pdf_path)
-                pdf_urls.append(f"/{pdf_path}")
+                try:
+                    pdf.save(pdf_path)
+                    pdf_urls.append(f"{app.config['UPLOAD_FOLDER']}/{filename}")
+                    app.logger.debug(f"Saved PDF: {pdf_path}")
+                except Exception as e:
+                    app.logger.error(f"Error saving PDF {filename}: {str(e)}")
 
         product.category = data.get('category', product.category)
         product.product_name = data.get('product_name', product.product_name)
@@ -164,6 +190,7 @@ def edit_product_ui(product_id):
         product.special_note = data.get('special_note', product.special_note)
         product.whatsapp_number = data.get('whatsapp_number', product.whatsapp_number)
         db.session.commit()
+        app.logger.debug(f"Updated product: {product.product_name}, Image URLs: {product.product_image_urls}")
         return redirect(url_for('index'))
     
     return render_template('edit_product.html', product=product)
@@ -173,9 +200,10 @@ def delete_product_ui(product_id):
     product = Product.query.get_or_404(product_id)
     db.session.delete(product)
     db.session.commit()
+    app.logger.debug(f"Deleted product ID: {product_id}")
     return redirect(url_for('index'))
 
-# Existing API Routes (updated model fields)
+# Existing API Routes
 @app.route('/add-product', methods=['POST'])
 def add_product():
     data = request.get_json()
@@ -199,6 +227,7 @@ def add_product():
     )
     db.session.add(product)
     db.session.commit()
+    app.logger.debug(f"API: Added product: {product.product_name}")
     return jsonify({"message": "Product added", "product_id": product.id}), 201
 
 @app.route('/products', methods=['GET'])
@@ -240,6 +269,7 @@ def update_product(product_id):
     product.special_note = data.get('special_note', product.special_note)
     product.whatsapp_number = data.get('whatsapp_number', product.whatsapp_number)
     db.session.commit()
+    app.logger.debug(f"API: Updated product ID: {product_id}")
     return jsonify({"message": "Product updated"}), 200
 
 @app.route('/product/<int:product_id>', methods=['DELETE'])
@@ -247,6 +277,7 @@ def delete_product(product_id):
     product = Product.query.get_or_404(product_id)
     db.session.delete(product)
     db.session.commit()
+    app.logger.debug(f"API: Deleted product ID: {product_id}")
     return jsonify({"message": "Product deleted"}), 200
 
 @app.route('/search', methods=['GET'])
