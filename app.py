@@ -6,56 +6,91 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///products.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# SQLAlchemy Product model
+# Product Model
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     category = db.Column(db.String(100))
     product_name = db.Column(db.String(200))
-    download_pdfs = db.Column(db.Text)  # Comma-separated string
+    download_pdfs = db.Column(db.Text)
     product_image_url = db.Column(db.String(300))
     whatsapp_number = db.Column(db.String(20))
 
-# Create the DB
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "category": self.category,
+            "product_name": self.product_name,
+            "download_pdfs": self.download_pdfs.split(",") if self.download_pdfs else [],
+            "product_image_url": self.product_image_url,
+            "whatsapp_number": self.whatsapp_number
+        }
+
+# Create DB
 with app.app_context():
     db.create_all()
 
-# API route to add product
+# Create product
 @app.route('/add-product', methods=['POST'])
 def add_product():
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    product = Product(
+        category=data.get('category'),
+        product_name=data.get('product_name'),
+        download_pdfs=",".join(data.get('download_pdfs', [])),
+        product_image_url=data.get('product_image_url'),
+        whatsapp_number=data.get('whatsapp_number')
+    )
+    db.session.add(product)
+    db.session.commit()
+    return jsonify({"message": "Product added", "product_id": product.id}), 201
 
-        category = data.get('category')
-        product_name = data.get('product_name')
-        download_pdfs = data.get('download_pdfs', [])
-        product_image_url = data.get('product_image_url')
-        whatsapp_number = data.get('whatsapp_number')
+# Read all products
+@app.route('/products', methods=['GET'])
+def get_products():
+    products = Product.query.all()
+    return jsonify([p.to_dict() for p in products]), 200
 
-        if not category or not product_name:
-            return jsonify({"error": "category and product_name are required"}), 400
+# Read single product
+@app.route('/product/<int:product_id>', methods=['GET'])
+def get_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    return jsonify(product.to_dict()), 200
 
-        pdf_str = ",".join(download_pdfs) if isinstance(download_pdfs, list) else str(download_pdfs)
+# Update product
+@app.route('/product/<int:product_id>', methods=['PUT'])
+def update_product(product_id):
+    data = request.get_json()
+    product = Product.query.get_or_404(product_id)
+    product.category = data.get('category', product.category)
+    product.product_name = data.get('product_name', product.product_name)
+    product.download_pdfs = ",".join(data.get('download_pdfs', product.download_pdfs.split(",")))
+    product.product_image_url = data.get('product_image_url', product.product_image_url)
+    product.whatsapp_number = data.get('whatsapp_number', product.whatsapp_number)
+    db.session.commit()
+    return jsonify({"message": "Product updated"}), 200
 
-        product = Product(
-            category=category,
-            product_name=product_name,
-            download_pdfs=pdf_str,
-            product_image_url=product_image_url,
-            whatsapp_number=whatsapp_number
-        )
+# Delete product
+@app.route('/product/<int:product_id>', methods=['DELETE'])
+def delete_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    db.session.delete(product)
+    db.session.commit()
+    return jsonify({"message": "Product deleted"}), 200
 
-        db.session.add(product)
-        db.session.commit()
+# Search products
+@app.route('/search', methods=['GET'])
+def search_products():
+    query = request.args.get('q', '').lower()
+    results = Product.query.filter(
+        Product.product_name.ilike(f'%{query}%') |
+        Product.category.ilike(f'%{query}%')
+    ).all()
+    return jsonify([p.to_dict() for p in results]), 200
 
-        return jsonify({"message": "Product added successfully", "product_id": product.id}), 201
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# Health check route (optional)
-@app.route("/")
+# Health check
+@app.route('/')
 def home():
-    return "✅ Flask API is running!"
+    return "✅ Product API is running!"
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
