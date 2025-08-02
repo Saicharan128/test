@@ -92,20 +92,39 @@
                     rows="5">{{ product.long_description }}</textarea>
             </div>
             <div class="mb-3">
-                <label for="price" class="form-label">Price</label>
-                <input type="number" step="0.01" class="form-control" id="price" name="price"
-                    value="{{ product.price }}" required>
+                <label for="mrp" class="form-label">MRP</label>
+                <input type="number" step="0.01" class="form-control" id="mrp" name="mrp" value="{{ product.mrp }}"
+                    required>
             </div>
             <div class="mb-3">
-                <label for="discount" class="form-label">Discount (%)</label>
-                <input type="number" step="0.01" class="form-control" id="discount" name="discount"
-                    value="{{ product.discount }}">
+                <label for="offer_price" class="form-label">Offer Price</label>
+                <input type="number" step="0.01" class="form-control" id="offer_price" name="offer_price"
+                    value="{{ product.offer_price }}" required>
             </div>
             <div class="mb-3">
-                <label for="image" class="form-label">Product Image</label>
-                <input type="file" class="form-control" id="image" name="image" accept="image/*">
-                {% if product.product_image_url %}
-                <img src="{{ product.product_image_url }}" alt="Current Image" class="mt-2" style="max-width: 200px;">
+                <label for="sku" class="form-label">SKU#</label>
+                <input type="text" class="form-control" id="sku" name="sku" value="{{ product.sku }}">
+            </div>
+            <div class="mb-3">
+                <label for="in_stock" class="form-label">In Stock</label>
+                <input type="checkbox" class="form-check-input" id="in_stock" name="in_stock" {% if product.in_stock
+                    %}checked{% endif %}>
+            </div>
+            <div class="mb-3">
+                <label for="stock_number" class="form-label">Stock Number</label>
+                <input type="number" class="form-control" id="stock_number" name="stock_number"
+                    value="{{ product.stock_number }}" min="0">
+            </div>
+            <div class="mb-3">
+                <label for="images" class="form-label">Product Images (Existing: {{ product.product_image_urls|length
+                    }})</label>
+                <input type="file" class="form-control" id="images" name="images" accept="image/*" multiple>
+                {% if product.product_image_urls %}
+                <div class="mt-2">
+                    {% for image_url in product.product_image_urls %}
+                    <img src="{{ image_url }}" alt="Current Image" style="max-width: 200px; margin-right: 10px;">
+                    {% endfor %}
+                </div>
                 {% endif %}
             </div>
             <div class="mb-3">
@@ -119,6 +138,27 @@
                     {% endfor %}
                 </ul>
                 {% endif %}
+            </div>
+            <div class="mb-3">
+                <label for="youtube_links" class="form-label">YouTube Links (comma-separated)</label>
+                <input type="text" class="form-control" id="youtube_links" name="youtube_links"
+                    value="{{ product.youtube_links }}">
+            </div>
+            <div class="mb-3">
+                <label for="technical_information" class="form-label">Technical Information (table format, e.g., | Key |
+                    Value |)</label>
+                <textarea class="form-control" id="technical_information" name="technical_information"
+                    rows="5">{{ product.technical_information }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="manufacturer" class="form-label">Manufacturer</label>
+                <input type="text" class="form-control" id="manufacturer" name="manufacturer"
+                    value="{{ product.manufacturer }}">
+            </div>
+            <div class="mb-3">
+                <label for="special_note" class="form-label">Special Note</label>
+                <textarea class="form-control" id="special_note" name="special_note"
+                    rows="3">{{ product.special_note }}</textarea>
             </div>
             <div class="mb-3">
                 <label for="whatsapp_number" class="form-label">WhatsApp Number</label>

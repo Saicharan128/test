@@ -26,10 +26,17 @@ class Product(db.Model):
     product_name = db.Column(db.String(200))
     short_description = db.Column(db.Text)
     long_description = db.Column(db.Text)
-    price = db.Column(db.Float)
-    discount = db.Column(db.Float)
+    mrp = db.Column(db.Float)  # Replaced Price
+    offer_price = db.Column(db.Float)  # Replaced Discount
+    sku = db.Column(db.String(50))
+    in_stock = db.Column(db.Boolean, default=True)
+    stock_number = db.Column(db.Integer)
     download_pdfs = db.Column(db.Text)
-    product_image_url = db.Column(db.String(300))
+    product_image_urls = db.Column(db.Text)  # Multiple images, comma-separated
+    youtube_links = db.Column(db.Text)
+    technical_information = db.Column(db.Text)
+    manufacturer = db.Column(db.String(200))
+    special_note = db.Column(db.Text)
     whatsapp_number = db.Column(db.String(20))
 
     def to_dict(self):
@@ -39,10 +46,17 @@ class Product(db.Model):
             "product_name": self.product_name,
             "short_description": self.short_description,
             "long_description": self.long_description,
-            "price": self.price,
-            "discount": self.discount,
+            "mrp": self.mrp,
+            "offer_price": self.offer_price,
+            "sku": self.sku,
+            "in_stock": self.in_stock,
+            "stock_number": self.stock_number,
             "download_pdfs": self.download_pdfs.split(",") if self.download_pdfs else [],
-            "product_image_url": self.product_image_url,
+            "product_image_urls": self.product_image_urls.split(",") if self.product_image_urls else [],
+            "youtube_links": self.youtube_links.split(",") if self.youtube_links else [],
+            "technical_information": self.technical_information,
+            "manufacturer": self.manufacturer,
+            "special_note": self.special_note,
             "whatsapp_number": self.whatsapp_number
         }
 
@@ -66,22 +80,23 @@ def index():
 def add_product_ui():
     if request.method == 'POST':
         data = request.form
-        files = request.files.getlist('pdfs')
-        image = request.files.get('image')
+        images = request.files.getlist('images')
+        pdfs = request.files.getlist('pdfs')
 
-        image_url = ''
-        if image and allowed_file(image.filename):
-            filename = secure_filename(image.filename)
-            image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            image.save(image_path)
-            image_url = f"/{image_path}"
+        image_urls = []
+        for image in images:
+            if image and allowed_file(image.filename):
+                filename = secure_filename(image.filename)
+                image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                image.save(image_path)
+                image_urls.append(f"/{image_path}")
 
         pdf_urls = []
-        for file in files:
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
+        for pdf in pdfs:
+            if pdf and allowed_file(pdf.filename):
+                filename = secure_filename(pdf.filename)
                 pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(pdf_path)
+                pdf.save(pdf_path)
                 pdf_urls.append(f"/{pdf_path}")
 
         product = Product(
@@ -89,10 +104,17 @@ def add_product_ui():
             product_name=data.get('product_name'),
             short_description=data.get('short_description'),
             long_description=data.get('long_description'),
-            price=float(data.get('price')) if data.get('price') else 0.0,
-            discount=float(data.get('discount')) if data.get('discount') else 0.0,
+            mrp=float(data.get('mrp')) if data.get('mrp') else 0.0,
+            offer_price=float(data.get('offer_price')) if data.get('offer_price') else 0.0,
+            sku=data.get('sku'),
+            in_stock=data.get('in_stock') == 'on',
+            stock_number=int(data.get('stock_number')) if data.get('stock_number') else 0,
             download_pdfs=",".join(pdf_urls),
-            product_image_url=image_url,
+            product_image_urls=",".join(image_urls),
+            youtube_links=data.get('youtube_links'),
+            technical_information=data.get('technical_information'),
+            manufacturer=data.get('manufacturer'),
+            special_note=data.get('special_note'),
             whatsapp_number=data.get('whatsapp_number')
         )
         db.session.add(product)
@@ -106,30 +128,40 @@ def edit_product_ui(product_id):
     product = Product.query.get_or_404(product_id)
     if request.method == 'POST':
         data = request.form
-        files = request.files.getlist('pdfs')
-        image = request.files.get('image')
+        images = request.files.getlist('images')
+        pdfs = request.files.getlist('pdfs')
 
-        if image and allowed_file(image.filename):
-            filename = secure_filename(image.filename)
-            image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            image.save(image_path)
-            product.product_image_url = f"/{image_path}"
+        image_urls = product.product_image_urls.split(",") if product.product_image_urls else []
+        for image in images:
+            if image and allowed_file(image.filename):
+                filename = secure_filename(image.filename)
+                image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                image.save(image_path)
+                image_urls.append(f"/{image_path}")
 
         pdf_urls = product.download_pdfs.split(",") if product.download_pdfs else []
-        for file in files:
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
+        for pdf in pdfs:
+            if pdf and allowed_file(pdf.filename):
+                filename = secure_filename(pdf.filename)
                 pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(pdf_path)
+                pdf.save(pdf_path)
                 pdf_urls.append(f"/{pdf_path}")
 
         product.category = data.get('category', product.category)
         product.product_name = data.get('product_name', product.product_name)
         product.short_description = data.get('short_description', product.short_description)
         product.long_description = data.get('long_description', product.long_description)
-        product.price = float(data.get('price', product.price)) if data.get('price') else product.price
-        product.discount = float(data.get('discount', product.discount)) if data.get('discount') else product.discount
+        product.mrp = float(data.get('mrp', product.mrp)) if data.get('mrp') else product.mrp
+        product.offer_price = float(data.get('offer_price', product.offer_price)) if data.get('offer_price') else product.offer_price
+        product.sku = data.get('sku', product.sku)
+        product.in_stock = data.get('in_stock') == 'on'
+        product.stock_number = int(data.get('stock_number', product.stock_number)) if data.get('stock_number') else product.stock_number
         product.download_pdfs = ",".join(pdf_urls)
+        product.product_image_urls = ",".join(image_urls)
+        product.youtube_links = data.get('youtube_links', product.youtube_links)
+        product.technical_information = data.get('technical_information', product.technical_information)
+        product.manufacturer = data.get('manufacturer', product.manufacturer)
+        product.special_note = data.get('special_note', product.special_note)
         product.whatsapp_number = data.get('whatsapp_number', product.whatsapp_number)
         db.session.commit()
         return redirect(url_for('index'))
@@ -143,7 +175,7 @@ def delete_product_ui(product_id):
     db.session.commit()
     return redirect(url_for('index'))
 
-# Existing API Routes
+# Existing API Routes (updated model fields)
 @app.route('/add-product', methods=['POST'])
 def add_product():
     data = request.get_json()
@@ -152,10 +184,17 @@ def add_product():
         product_name=data.get('product_name'),
         short_description=data.get('short_description'),
         long_description=data.get('long_description'),
-        price=data.get('price'),
-        discount=data.get('discount'),
+        mrp=data.get('mrp'),
+        offer_price=data.get('offer_price'),
+        sku=data.get('sku'),
+        in_stock=data.get('in_stock', True),
+        stock_number=data.get('stock_number', 0),
         download_pdfs=",".join(data.get('download_pdfs', [])),
-        product_image_url=data.get('product_image_url'),
+        product_image_urls=",".join(data.get('product_image_urls', [])),
+        youtube_links=data.get('youtube_links'),
+        technical_information=data.get('technical_information'),
+        manufacturer=data.get('manufacturer'),
+        special_note=data.get('special_note'),
         whatsapp_number=data.get('whatsapp_number')
     )
     db.session.add(product)
@@ -188,10 +227,17 @@ def update_product(product_id):
     product.product_name = data.get('product_name', product.product_name)
     product.short_description = data.get('short_description', product.short_description)
     product.long_description = data.get('long_description', product.long_description)
-    product.price = data.get('price', product.price)
-    product.discount = data.get('discount', product.discount)
+    product.mrp = data.get('mrp', product.mrp)
+    product.offer_price = data.get('offer_price', product.offer_price)
+    product.sku = data.get('sku', product.sku)
+    product.in_stock = data.get('in_stock', product.in_stock)
+    product.stock_number = data.get('stock_number', product.stock_number)
     product.download_pdfs = ",".join(data.get('download_pdfs', product.download_pdfs.split(",") if product.download_pdfs else []))
-    product.product_image_url = data.get('product_image_url', product.product_image_url)
+    product.product_image_urls = ",".join(data.get('product_image_urls', product.product_image_urls.split(",") if product.product_image_urls else []))
+    product.youtube_links = data.get('youtube_links', product.youtube_links)
+    product.technical_information = data.get('technical_information', product.technical_information)
+    product.manufacturer = data.get('manufacturer', product.manufacturer)
+    product.special_note = data.get('special_note', product.special_note)
     product.whatsapp_number = data.get('whatsapp_number', product.whatsapp_number)
     db.session.commit()
     return jsonify({"message": "Product updated"}), 200

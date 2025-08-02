@@ -44,13 +44,18 @@
             height: 200px;
             object-fit: cover;
         }
+
+        .strikethrough {
+            text-decoration: line-through;
+            color: #888;
+        }
     </style>
 </head>
 
 <body>
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#"><img width="30px" height="30px" src="{{ url_for('static', filename='images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg') }}" alt="Image 1"></a>
+            <a class="navbar-brand" href="#">irc</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -85,15 +90,51 @@
             {% for product in products %}
             <div class="col-md-4 mb-4">
                 <div class="card">
-                    {% if product.product_image_url %}
-                    <img src="{{ product.product_image_url }}" class="card-img-top" alt="{{ product.product_name }}">
+                    {% if product.product_image_urls %}
+                    <div id="carousel{{ product.id }}" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            {% for image_url in product.product_image_urls %}
+                            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                <img src="{{ image_url }}" class="d-block w-100 card-img-top"
+                                    alt="{{ product.product_name }}">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel{{ product.id }}"
+                            data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carousel{{ product.id }}"
+                            data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
                     {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">{{ product.product_name }}</h5>
                         <p class="card-text">{{ product.short_description }}</p>
                         <p class="card-text"><strong>Category:</strong> {{ product.category }}</p>
-                        <p class="card-text"><strong>Price:</strong> ${{ product.price }}</p>
-                        <p class="card-text"><strong>Discount:</strong> {{ product.discount }}%</p>
+                        <p class="card-text"><strong>MRP:</strong> <span class="strikethrough">${{ product.mrp }}</span>
+                            <strong>Offer Price:</strong> ${{ product.offer_price }}</p>
+                        <p class="card-text"><strong>SKU#:</strong> {{ product.sku }}</p>
+                        <p class="card-text"><strong>In Stock:</strong> {{ "Yes" if product.in_stock else "No" }} ({{
+                            product.stock_number }} units)</p>
+                        {% if product.youtube_links %}
+                        <p class="card-text"><strong>YouTube Links:</strong></p>
+                        <ul>
+                            {% for link in product.youtube_links.split(',') %}
+                            <li><a href="{{ link }}" target="_blank">Watch</a></li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% if product.technical_information %}
+                        <p class="card-text"><strong>Technical Information:</strong></p>
+                        <div>{{ product.technical_information|safe }}</div>
+                        {% endif %}
+                        <p class="card-text"><strong>Manufacturer:</strong> {{ product.manufacturer }}</p>
+                        <p class="card-text"><strong>Special Note:</strong> {{ product.special_note }}</p>
                         <p class="card-text"><strong>WhatsApp:</strong> {{ product.whatsapp_number }}</p>
                         {% if product.download_pdfs %}
                         <p class="card-text"><strong>PDFs:</strong></p>

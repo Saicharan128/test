@@ -88,20 +88,50 @@
                 <textarea class="form-control" id="long_description" name="long_description" rows="5"></textarea>
             </div>
             <div class="mb-3">
-                <label for="price" class="form-label">Price</label>
-                <input type="number" step="0.01" class="form-control" id="price" name="price" required>
+                <label for="mrp" class="form-label">MRP</label>
+                <input type="number" step="0.01" class="form-control" id="mrp" name="mrp" required>
             </div>
             <div class="mb-3">
-                <label for="discount" class="form-label">Discount (%)</label>
-                <input type="number" step="0.01" class="form-control" id="discount" name="discount">
+                <label for="offer_price" class="form-label">Offer Price</label>
+                <input type="number" step="0.01" class="form-control" id="offer_price" name="offer_price" required>
             </div>
             <div class="mb-3">
-                <label for="image" class="form-label">Product Image</label>
-                <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                <label for="sku" class="form-label">SKU#</label>
+                <input type="text" class="form-control" id="sku" name="sku">
+            </div>
+            <div class="mb-3">
+                <label for="in_stock" class="form-label">In Stock</label>
+                <input type="checkbox" class="form-check-input" id="in_stock" name="in_stock" checked>
+            </div>
+            <div class="mb-3">
+                <label for="stock_number" class="form-label">Stock Number</label>
+                <input type="number" class="form-control" id="stock_number" name="stock_number" min="0">
+            </div>
+            <div class="mb-3">
+                <label for="images" class="form-label">Product Images</label>
+                <input type="file" class="form-control" id="images" name="images" accept="image/*" multiple>
             </div>
             <div class="mb-3">
                 <label for="pdfs" class="form-label">PDF Files</label>
                 <input type="file" class="form-control" id="pdfs" name="pdfs" accept=".pdf" multiple>
+            </div>
+            <div class="mb-3">
+                <label for="youtube_links" class="form-label">YouTube Links (comma-separated)</label>
+                <input type="text" class="form-control" id="youtube_links" name="youtube_links">
+            </div>
+            <div class="mb-3">
+                <label for="technical_information" class="form-label">Technical Information (table format, e.g., | Key |
+                    Value |)</label>
+                <textarea class="form-control" id="technical_information" name="technical_information"
+                    rows="5"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="manufacturer" class="form-label">Manufacturer</label>
+                <input type="text" class="form-control" id="manufacturer" name="manufacturer">
+            </div>
+            <div class="mb-3">
+                <label for="special_note" class="form-label">Special Note</label>
+                <textarea class="form-control" id="special_note" name="special_note" rows="3"></textarea>
             </div>
             <div class="mb-3">
                 <label for="whatsapp_number" class="form-label">WhatsApp Number</label>
