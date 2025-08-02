@@ -1,7 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS # Import CORS
 
 app = Flask(__name__)
+CORS(app)  # Initialize CORS with your app
+# If you want to restrict access to specific origins, you can do:
+# CORS(app, resources={r"/*": {"origins": ["https://ismat2.webflow.io", "http://localhost:8000"]}})
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///products.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
