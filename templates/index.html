@@ -4,110 +4,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IRC Store</title>
+    <title>Store</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
-<body class="bg-gray-100 font-sans">
-    <header class="bg-blue-600 text-white p-4">
-        <h1 class="text-2xl font-bold">IRC</h1>
+<body class="bg-gray-100">
+    <header class="bg-white shadow-md fixed top-0 w-full z-10">
+        <div class="container mx-auto px-4 py-2 flex justify-between items-center">
+            <img src="/static/images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg" alt="IRC Logo" class="h-12">
+            <nav class="space-x-6">
+                <a href="/" class="text-gray-700 hover:text-gray-900">Home</a>
+                <a href="/store" class="text-gray-700 hover:text-gray-900">Store</a>
+            </nav>
+            <a href="/cart">
+                <img src="/static/images/eee32fe2-05fe-4df9-92d7-8ca58b68ad33.jpeg" alt="Cart" class="h-10">
+            </a>
+        </div>
     </header>
-
-    <main class="container mx-auto p-4">
-        <h2 class="text-xl font-semibold mb-4">Product Management</h2>
-        <a href="{{ url_for('add_product_ui') }}"
-            class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add New Product</a>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+    <main class="container mx-auto p-4 mt-20">
+        <h1 class="text-3xl font-bold mb-4">Product Management</h1>
+        <a href="{{ url_for('add_product_ui') }}" class="bg-blue-500 text-white px-4 py-2 rounded mb-4 inline-block">Add
+            New Product</a>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {% for product in products %}
             <div class="bg-white p-4 rounded shadow">
                 {% if product.product_image_urls %}
                 <div class="relative">
-                    {% for image_url in product.product_image_urls.split(',') %}
-                    <img src="{{ url_for('serve_uploaded_file', filename=image_url.split('/')[-1]) }}"
-                        alt="Product Image" class="w-full h-48 object-cover rounded">
-                    {% endfor %}
+                    <div class="carousel">
+                        {% for image_url in product.product_image_urls.split(',') %}
+                        <img src="{{ image_url }}" alt="{{ product.product_name }}"
+                            class="w-full h-48 object-cover carousel-item hidden">
+                        {% endfor %}
+                    </div>
                     {% if product.product_image_urls.split(',')|length > 1 %}
                     <button
-                        class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white px-2 py-1 rounded">Previous</button>
+                        class="prev absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded">Previous</button>
                     <button
-                        class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white px-2 py-1 rounded">Next</button>
+                        class="next absolute top-1/2 right-0 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded">Next</button>
                     {% endif %}
                 </div>
                 {% else %}
-                <p class="text-center text-gray-500">No images available</p>
+                <p>No images available</p>
                 {% endif %}
-                <h3 class="text-lg font-medium mt-2">{{ product.product_name }}</h3>
-                <p class="text-gray-700">{{ product.short_description }}</p>
-                <p class="text-gray-600">Category: {{ product.category }}</p>
-                {% if product.category == 'Rubber/sheets' %}
-                <p class="text-gray-600">Density: {{ product.density }} g/cm³</p>
-                <p class="text-gray-600">Height: {{ product.height }} mm</p>
-                <p class="text-gray-600">Length: {{ product.length }} mm</p>
-                <p class="text-gray-600">Thickness: {{ product.thickness }} mm</p>
-                <p class="text-gray-600">Description: {{ product.rubber_description }}</p>
-                {% endif %}
-                <p class="text-gray-600">MRP: ${{ product.mrp }} Offer Price: ${{ product.offer_price }}</p>
-                <p class="text-gray-600">SKU#: {{ product.sku }}</p>
-                <p class="text-gray-600">In Stock: {{ "Yes" if product.in_stock else "No" }} ({{ product.stock_number }}
+                <h2 class="text-xl font-bold">{{ product.product_name }}</h2>
+                <p>{{ product.short_description }}</p>
+                <p><strong>Category:</strong> {{ product.category }}</p>
+                <p><strong>MRP:</strong> ${{ product.mrp }} <strong>Offer Price:</strong> ${{ product.offer_price }}</p>
+                <p><strong>SKU#:</strong> {{ product.sku }}</p>
+                <p><strong>In Stock:</strong> {{ "Yes" if product.in_stock else "No" }} ({{ product.stock_number }}
                     units)</p>
+                {% if product.is_rubber %}
+                <p><strong>Rubber Specifications:</strong></p>
+                <ul>
+                    {% if product.rubber_density %}
+                    <li><strong>Density:</strong> {{ product.rubber_density }}</li>
+                    {% endif %}
+                    {% if product.rubber_height %}
+                    <li><strong>Height:</strong> {{ product.rubber_height }}</li>
+                    {% endif %}
+                    {% if product.rubber_length %}
+                    <li><strong>Length:</strong> {{ product.rubber_length }}</li>
+                    {% endif %}
+                    {% if product.rubber_thickness %}
+                    <li><strong>Thickness:</strong> {{ product.rubber_thickness }}</li>
+                    {% endif %}
+                    {% if product.rubber_description %}
+                    <li><strong>Description:</strong> {{ product.rubber_description }}</li>
+                    {% endif %}
+                </ul>
+                {% endif %}
                 {% if product.youtube_links %}
-                <p class="text-gray-600">YouTube Links:</p>
-                <ul class="list-disc list-inside">
+                <p><strong>YouTube Links:</strong></p>
+                <ul>
                     {% for link in product.youtube_links.split(',') %}
-                    <li><a href="{{ link }}" target="_blank" class="text-blue-500 hover:underline">Watch</a></li>
+                    <li><a href="{{ link }}" target="_blank" class="text-blue-500">Watch</a></li>
                     {% endfor %}
                 </ul>
                 {% endif %}
                 {% if product.technical_information %}
-                <p class="text-gray-600">Technical Information:</p>
-                <div class="mt-2">{{ product.technical_information|safe }}</div>
+                <p><strong>Technical Information:</strong></p>
+                <div>{{ product.technical_information|safe }}</div>
                 {% endif %}
-                <p class="text-gray-600">Manufacturer: {{ product.manufacturer }}</p>
-                <p class="text-gray-600">Special Note: {{ product.special_note }}</p>
-                <p class="text-gray-600">WhatsApp: {{ product.whatsapp_number }}</p>
+                <p><strong>Manufacturer:</strong> {{ product.manufacturer }}</p>
+                <p><strong>Special Note:</strong> {{ product.special_note }}</p>
+                <p><strong>WhatsApp:</strong> {{ product.whatsapp_number }}</p>
                 {% if product.download_pdfs %}
-                <p class="text-gray-600">PDFs:</p>
-                <ul class="list-disc list-inside">
+                <p><strong>PDFs:</strong></p>
+                <ul>
                     {% for pdf in product.download_pdfs.split(',') %}
-                    <li><a href="{{ url_for('serve_uploaded_file', filename=pdf.split('/')[-1]) }}" target="_blank"
-                            class="text-blue-500 hover:underline">Download PDF</a></li>
+                    <li><a href="{{ pdf }}" target="_blank" class="text-blue-500">Download PDF</a></li>
                     {% endfor %}
                 </ul>
                 {% endif %}
-                <div class="mt-4 flex space-x-2">
+                <div class="flex space-x-2 mt-2">
                     <a href="{{ url_for('edit_product_ui', product_id=product.id) }}"
-                        class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Edit</a>
-                    <form action="{{ url_for('delete_product_ui', product_id=product.id) }}" method="post"
-                        class="inline">
-                        <button type="submit"
-                            class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
+                        class="bg-yellow-500 text-white px-4 py-2 rounded">Edit</a>
+                    <form method="POST" action="{{ url_for('delete_product_ui', product_id=product.id) }}">
+                        <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded">Delete</button>
                     </form>
                 </div>
             </div>
             {% endfor %}
         </div>
-
-        <div class="mt-4 flex justify-center space-x-2">
+        <div class="mt-4">
             {% if pagination.has_prev %}
             <a href="{{ url_for('index', page=pagination.prev_num) }}"
-                class="bg-gray-300 px-3 py-1 rounded hover:bg-gray-400">Previous</a>
+                class="bg-gray-500 text-white px-4 py-2 rounded">Previous</a>
             {% endif %}
             {% for page in pagination.iter_pages() %}
             {% if page %}
             <a href="{{ url_for('index', page=page) }}"
-                class="px-3 py-1 rounded {{ 'bg-blue-500 text-white' if page == pagination.page else 'bg-gray-300 hover:bg-gray-400' }}">{{
+                class="bg-blue-500 text-white px-4 py-2 rounded {% if page == pagination.page %}bg-blue-700{% endif %}">{{
                 page }}</a>
             {% else %}
-            <span class="px-3 py-1">...</span>
+            <span>...</span>
             {% endif %}
             {% endfor %}
             {% if pagination.has_next %}
             <a href="{{ url_for('index', page=pagination.next_num) }}"
-                class="bg-gray-300 px-3 py-1 rounded hover:bg-gray-400">Next</a>
+                class="bg-gray-500 text-white px-4 py-2 rounded">Next</a>
             {% endif %}
         </div>
     </main>
+    <script>
+        document.querySelectorAll('.carousel').forEach(carousel => {
+            const items = carousel.querySelectorAll('.carousel-item');
+            let current = 0;
+            items[current].classList.remove('hidden');
+            carousel.parentElement.querySelector('.next')?.addEventListener('click', () => {
+                items[current].classList.add('hidden');
+                current = (current + 1) % items.length;
+                items[current].classList.remove('hidden');
+            });
+            carousel.parentElement.querySelector('.prev')?.addEventListener('click', () => {
+                items[current].classList.add('hidden');
+                current = (current - 1 + items.length) % items.length;
+                items[current].classList.remove('hidden');
+            });
+        });
+    </script>
 </body>
 
 </html>

@@ -4,154 +4,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IRC Store - Edit Product</title>
+    <title>Edit Product</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
-<body class="bg-gray-100 font-sans">
-    <header class="bg-blue-600 text-white p-4">
-        <h1 class="text-2xl font-bold">IRC</h1>
+<body class="bg-gray-100">
+    <header class="bg-white shadow-md fixed top-0 w-full z-10">
+        <div class="container mx-auto px-4 py-2 flex justify-between items-center">
+            <img src="/static/images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg" alt="IRC Logo" class="h-12">
+            <nav class="space-x-6">
+                <a href="/" class="text-gray-700 hover:text-gray-900">Home</a>
+                <a href="/store" class="text-gray-700 hover:text-gray-900">Store</a>
+            </nav>
+            <a href="/cart">
+                <img src="/static/images/eee32fe2-05fe-4df9-92d7-8ca58b68ad33.jpeg" alt="Cart" class="h-10">
+            </a>
+        </div>
     </header>
-
-    <main class="container mx-auto p-4">
-        <h2 class="text-xl font-semibold mb-4">Edit Product</h2>
-        <form method="post" enctype="multipart/form-data" class="bg-white p-6 rounded shadow">
-            <div class="mb-4">
-                <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+    <main class="container mx-auto p-4 mt-20">
+        <h1 class="text-3xl font-bold mb-4">Edit Product</h1>
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            <div>
+                <label for="category" class="block">Category</label>
                 <input type="text" id="category" name="category" value="{{ product.category }}"
-                    class="mt-1 block w-full border-gray-300 rounded" required>
+                    class="border p-2 w-full">
             </div>
-            <div class="mb-4">
-                <label for="product_name" class="block text-sm font-medium text-gray-700">Product Name</label>
+            <div>
+                <label for="product_name" class="block">Product Name</label>
                 <input type="text" id="product_name" name="product_name" value="{{ product.product_name }}"
-                    class="mt-1 block w-full border-gray-300 rounded" required>
+                    class="border p-2 w-full">
             </div>
-            <div class="mb-4">
-                <label for="short_description" class="block text-sm font-medium text-gray-700">Short Description</label>
+            <div>
+                <label for="short_description" class="block">Short Description</label>
                 <textarea id="short_description" name="short_description"
-                    class="mt-1 block w-full border-gray-300 rounded"
-                    required>{{ product.short_description }}</textarea>
+                    class="border p-2 w-full">{{ product.short_description }}</textarea>
             </div>
-            <div class="mb-4">
-                <label for="long_description" class="block text-sm font-medium text-gray-700">Long Description</label>
+            <div>
+                <label for="long_description" class="block">Long Description</label>
                 <textarea id="long_description" name="long_description"
-                    class="mt-1 block w-full border-gray-300 rounded">{{ product.long_description }}</textarea>
+                    class="border p-2 w-full">{{ product.long_description }}</textarea>
             </div>
-            <div class="mb-4">
-                <label for="mrp" class="block text-sm font-medium text-gray-700">MRP</label>
+            <div>
+                <label for="mrp" class="block">MRP</label>
                 <input type="number" id="mrp" name="mrp" value="{{ product.mrp }}" step="0.01"
-                    class="mt-1 block w-full border-gray-300 rounded" required>
+                    class="border p-2 w-full">
             </div>
-            <div class="mb-4">
-                <label for="offer_price" class="block text-sm font-medium text-gray-700">Offer Price</label>
+            <div>
+                <label for="offer_price" class="block">Offer Price</label>
                 <input type="number" id="offer_price" name="offer_price" value="{{ product.offer_price }}" step="0.01"
-                    class="mt-1 block w-full border-gray-300 rounded">
+                    class="border p-2 w-full">
             </div>
-            <div class="mb-4">
-                <label for="sku" class="block text-sm font-medium text-gray-700">SKU#</label>
-                <input type="text" id="sku" name="sku" value="{{ product.sku }}"
-                    class="mt-1 block w-full border-gray-300 rounded" required>
+            <div>
+                <label for="sku" class="block">SKU#</label>
+                <input type="text" id="sku" name="sku" value="{{ product.sku }}" class="border p-2 w-full">
             </div>
-            <div class="mb-4">
-                <label for="in_stock" class="block text-sm font-medium text-gray-700">In Stock</label>
+            <div>
+                <label for="in_stock" class="block">In Stock</label>
                 <input type="checkbox" id="in_stock" name="in_stock" {% if product.in_stock %}checked{% endif %}
-                    class="mt-1">
+                    class="border p-2">
             </div>
-            <div class="mb-4">
-                <label for="stock_number" class="block text-sm font-medium text-gray-700">Stock Number</label>
+            <div>
+                <label for="stock_number" class="block">Stock Number</label>
                 <input type="number" id="stock_number" name="stock_number" value="{{ product.stock_number }}"
-                    class="mt-1 block w-full border-gray-300 rounded">
+                    class="border p-2 w-full">
             </div>
-            <div class="mb-4">
-                <label for="images" class="block text-sm font-medium text-gray-700">Product Images (Existing: {{
+            <div>
+                <label for="images" class="block">Product Images (Existing: {{
                     product.product_image_urls.split(',')|length if product.product_image_urls else 0 }})</label>
-                <input type="file" id="images" name="images" class="mt-1 block w-full border-gray-300 rounded" multiple>
                 {% if product.product_image_urls %}
-                <div class="mt-2 flex space-x-2">
+                <div class="flex space-x-2">
                     {% for image_url in product.product_image_urls.split(',') %}
-                    <img src="{{ url_for('serve_uploaded_file', filename=image_url.split('/')[-1]) }}"
-                        alt="Existing Image" class="w-24 h-24 object-cover rounded">
+                    <img src="{{ image_url }}" alt="Product Image" class="w-24 h-24 object-cover">
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="text-gray-500 mt-2">No existing images</p>
+                <p>No existing images</p>
                 {% endif %}
+                <input type="file" id="images" name="images" multiple accept="image/*" class="border p-2 w-full">
             </div>
-            <div class="mb-4">
-                <label for="pdfs" class="block text-sm font-medium text-gray-700">PDF Files (Existing: {{
-                    product.download_pdfs.split(',')|length if product.download_pdfs else 0 }})</label>
-                <input type="file" id="pdfs" name="pdfs" class="mt-1 block w-full border-gray-300 rounded" multiple>
+            <div>
+                <label for="pdfs" class="block">PDF Files (Existing: {{ product.download_pdfs.split(',')|length if
+                    product.download_pdfs else 0 }})</label>
                 {% if product.download_pdfs %}
-                <ul class="mt-2 list-disc list-inside">
+                <div>
                     {% for pdf in product.download_pdfs.split(',') %}
-                    <li><a href="{{ url_for('serve_uploaded_file', filename=pdf.split('/')[-1]) }}" target="_blank"
-                            class="text-blue-500 hover:underline">Download PDF</a></li>
+                    <a href="{{ pdf }}" target="_blank" class="text-blue-500">Download PDF</a><br>
                     {% endfor %}
-                </ul>
+                </div>
                 {% endif %}
+                <input type="file" id="pdfs" name="pdfs" multiple accept=".pdf" class="border p-2 w-full">
             </div>
-            <div class="mb-4">
-                <label for="youtube_links" class="block text-sm font-medium text-gray-700">YouTube Links
-                    (comma-separated)</label>
+            <div>
+                <label for="youtube_links" class="block">YouTube Links (comma-separated)</label>
                 <input type="text" id="youtube_links" name="youtube_links" value="{{ product.youtube_links }}"
-                    class="mt-1 block w-full border-gray-300 rounded">
+                    class="border p-2 w-full">
             </div>
-            <div class="mb-4">
-                <label for="technical_information" class="block text-sm font-medium text-gray-700">Technical Information
-                    (table format, e.g., | Key | Value |)</label>
+            <div>
+                <label for="technical_information" class="block">Technical Information (table format, e.g., | Key |
+                    Value |)</label>
                 <textarea id="technical_information" name="technical_information"
-                    class="mt-1 block w-full border-gray-300 rounded">{{ product.technical_information }}</textarea>
+                    class="border p-2 w-full">{{ product.technical_information }}</textarea>
             </div>
-            <div class="mb-4">
-                <label for="manufacturer" class="block text-sm font-medium text-gray-700">Manufacturer</label>
+            <div>
+                <label for="manufacturer" class="block">Manufacturer</label>
                 <input type="text" id="manufacturer" name="manufacturer" value="{{ product.manufacturer }}"
-                    class="mt-1 block w-full border-gray-300 rounded">
+                    class="border p-2 w-full">
             </div>
-            <div class="mb-4">
-                <label for="special_note" class="block text-sm font-medium text-gray-700">Special Note</label>
+            <div>
+                <label for="special_note" class="block">Special Note</label>
                 <textarea id="special_note" name="special_note"
-                    class="mt-1 block w-full border-gray-300 rounded">{{ product.special_note }}</textarea>
+                    class="border p-2 w-full">{{ product.special_note }}</textarea>
             </div>
-            <div class="mb-4">
-                <label for="whatsapp_number" class="block text-sm font-medium text-gray-700">WhatsApp Number</label>
+            <div>
+                <label for="whatsapp_number" class="block">WhatsApp Number</label>
                 <input type="text" id="whatsapp_number" name="whatsapp_number" value="{{ product.whatsapp_number }}"
-                    class="mt-1 block w-full border-gray-300 rounded">
+                    class="border p-2 w-full">
             </div>
-            {% if product.category == 'Rubber/sheets' %}
-            <div class="mb-4">
-                <label for="density" class="block text-sm font-medium text-gray-700">Density (g/cm³)</label>
-                <input type="number" id="density" name="density" value="{{ product.density }}" step="0.01"
-                    class="mt-1 block w-full border-gray-300 rounded">
+            <div>
+                <label for="is_rubber" class="block">Is Rubber Product</label>
+                <input type="checkbox" id="is_rubber" name="is_rubber" {% if product.is_rubber %}checked{% endif %}
+                    class="border p-2">
             </div>
-            <div class="mb-4">
-                <label for="height" class="block text-sm font-medium text-gray-700">Height (mm)</label>
-                <input type="number" id="height" name="height" value="{{ product.height }}" step="0.01"
-                    class="mt-1 block w-full border-gray-300 rounded">
+            <div id="rubber_fields" class="space-y-4 {% if not product.is_rubber %}hidden{% endif %}">
+                <div>
+                    <label for="rubber_density" class="block">Rubber Density</label>
+                    <input type="number" id="rubber_density" name="rubber_density"
+                        value="{{ product.rubber_density if product.rubber_density is not none else '' }}" step="0.01"
+                        class="border p-2 w-full">
+                </div>
+                <div>
+                    <label for="rubber_height" class="block">Rubber Height</label>
+                    <input type="number" id="rubber_height" name="rubber_height"
+                        value="{{ product.rubber_height if product.rubber_height is not none else '' }}" step="0.01"
+                        class="border p-2 w-full">
+                </div>
+                <div>
+                    <label for="rubber_length" class="block">Rubber Length</label>
+                    <input type="number" id="rubber_length" name="rubber_length"
+                        value="{{ product.rubber_length if product.rubber_length is not none else '' }}" step="0.01"
+                        class="border p-2 w-full">
+                </div>
+                <div>
+                    <label for="rubber_thickness" class="block">Rubber Thickness</label>
+                    <input type="number" id="rubber_thickness" name="rubber_thickness"
+                        value="{{ product.rubber_thickness if product.rubber_thickness is not none else '' }}"
+                        step="0.01" class="border p-2 w-full">
+                </div>
+                <div>
+                    <label for="rubber_description" class="block">Rubber Description</label>
+                    <textarea id="rubber_description" name="rubber_description"
+                        class="border p-2 w-full">{{ product.rubber_description if product.rubber_description else '' }}</textarea>
+                </div>
             </div>
-            <div class="mb-4">
-                <label for="length" class="block text-sm font-medium text-gray-700">Length (mm)</label>
-                <input type="number" id="length" name="length" value="{{ product.length }}" step="0.01"
-                    class="mt-1 block w-full border-gray-300 rounded">
-            </div>
-            <div class="mb-4">
-                <label for="thickness" class="block text-sm font-medium text-gray-700">Thickness (mm)</label>
-                <input type="number" id="thickness" name="thickness" value="{{ product.thickness }}" step="0.01"
-                    class="mt-1 block w-full border-gray-300 rounded">
-            </div>
-            <div class="mb-4">
-                <label for="rubber_description" class="block text-sm font-medium text-gray-700">Description</label>
-                <textarea id="rubber_description" name="rubber_description"
-                    class="mt-1 block w-full border-gray-300 rounded">{{ product.rubber_description }}</textarea>
-            </div>
-            {% endif %}
             <div class="flex space-x-4">
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Update
-                    Product</button>
-                <a href="{{ url_for('index') }}"
-                    class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</a>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Update Product</button>
+                <a href="{{ url_for('index') }}" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</a>
             </div>
         </form>
     </main>
+    <script>
+        document.getElementById('is_rubber').addEventListener('change', function () {
+            document.getElementById('rubber_fields').classList.toggle('hidden', !this.checked);
+        });
+    </script>
 </body>
 
 </html>
