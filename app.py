@@ -5,22 +5,24 @@ import os
 from werkzeug.utils import secure_filename
 import logging
 
-# Set up logging
+# Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
+# Initialize Flask app
 app = Flask(__name__)
 CORS(app)
 
-# Configuration
+# Configuration settings
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///products.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'pdf'}
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
-# Ensure upload folder exists
+# Create upload folder if it doesn't exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# Initialize SQLAlchemy
 db = SQLAlchemy(app)
 
 # Product Model
@@ -42,6 +44,11 @@ class Product(db.Model):
     manufacturer = db.Column(db.String(200))
     special_note = db.Column(db.Text)
     whatsapp_number = db.Column(db.String(20))
+    density = db.Column(db.Float)  # For Rubber/sheets
+    height = db.Column(db.Float)   # For Rubber/sheets
+    length = db.Column(db.Float)   # For Rubber/sheets
+    thickness = db.Column(db.Float) # For Rubber/sheets
+    rubber_description = db.Column(db.Text)  # For Rubber/sheets
 
     def to_dict(self):
         return {
@@ -61,10 +68,15 @@ class Product(db.Model):
             "technical_information": self.technical_information,
             "manufacturer": self.manufacturer,
             "special_note": self.special_note,
-            "whatsapp_number": self.whatsapp_number
+            "whatsapp_number": self.whatsapp_number,
+            "density": self.density,
+            "height": self.height,
+            "length": self.length,
+            "thickness": self.thickness,
+            "rubber_description": self.rubber_description
         }
 
-# Create DB
+# Create database tables
 with app.app_context():
     db.create_all()
 
@@ -72,7 +84,7 @@ with app.app_context():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-# Serve static files explicitly (for debugging)
+# Serve uploaded files
 @app.route('/static/uploads/<path:filename>')
 def serve_uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
@@ -100,7 +112,6 @@ def add_product_ui():
                 try:
                     image.save(image_path)
                     image_urls.append(f"{app.config['UPLOAD_FOLDER']}/{filename}")
-                    app.logger.debug(f"Saved image: {image_path}")
                 except Exception as e:
                     app.logger.error(f"Error saving image {filename}: {str(e)}")
 
@@ -112,7 +123,6 @@ def add_product_ui():
                 try:
                     pdf.save(pdf_path)
                     pdf_urls.append(f"{app.config['UPLOAD_FOLDER']}/{filename}")
-                    app.logger.debug(f"Saved PDF: {pdf_path}")
                 except Exception as e:
                     app.logger.error(f"Error saving PDF {filename}: {str(e)}")
 
@@ -132,7 +142,12 @@ def add_product_ui():
             technical_information=data.get('technical_information'),
             manufacturer=data.get('manufacturer'),
             special_note=data.get('special_note'),
-            whatsapp_number=data.get('whatsapp_number')
+            whatsapp_number=data.get('whatsapp_number'),
+            density=float(data.get('density')) if data.get('category') == 'Rubber/sheets' and data.get('density') else None,
+            height=float(data.get('height')) if data.get('category') == 'Rubber/sheets' and data.get('height') else None,
+            length=float(data.get('length')) if data.get('category') == 'Rubber/sheets' and data.get('length') else None,
+            thickness=float(data.get('thickness')) if data.get('category') == 'Rubber/sheets' and data.get('thickness') else None,
+            rubber_description=data.get('rubber_description') if data.get('category') == 'Rubber/sheets' else None
         )
         db.session.add(product)
         db.session.commit()
@@ -157,7 +172,6 @@ def edit_product_ui(product_id):
                 try:
                     image.save(image_path)
                     image_urls.append(f"{app.config['UPLOAD_FOLDER']}/{filename}")
-                    app.logger.debug(f"Saved image: {image_path}")
                 except Exception as e:
                     app.logger.error(f"Error saving image {filename}: {str(e)}")
 
@@ -169,7 +183,6 @@ def edit_product_ui(product_id):
                 try:
                     pdf.save(pdf_path)
                     pdf_urls.append(f"{app.config['UPLOAD_FOLDER']}/{filename}")
-                    app.logger.debug(f"Saved PDF: {pdf_path}")
                 except Exception as e:
                     app.logger.error(f"Error saving PDF {filename}: {str(e)}")
 
@@ -189,6 +202,11 @@ def edit_product_ui(product_id):
         product.manufacturer = data.get('manufacturer', product.manufacturer)
         product.special_note = data.get('special_note', product.special_note)
         product.whatsapp_number = data.get('whatsapp_number', product.whatsapp_number)
+        product.density = float(data.get('density', product.density)) if data.get('category') == 'Rubber/sheets' and data.get('density') else product.density
+        product.height = float(data.get('height', product.height)) if data.get('category') == 'Rubber/sheets' and data.get('height') else product.height
+        product.length = float(data.get('length', product.length)) if data.get('category') == 'Rubber/sheets' and data.get('length') else product.length
+        product.thickness = float(data.get('thickness', product.thickness)) if data.get('category') == 'Rubber/sheets' and data.get('thickness') else product.thickness
+        product.rubber_description = data.get('rubber_description', product.rubber_description) if data.get('category') == 'Rubber/sheets' else product.rubber_description
         db.session.commit()
         app.logger.debug(f"Updated product: {product.product_name}, Image URLs: {product.product_image_urls}")
         return redirect(url_for('index'))
@@ -203,7 +221,7 @@ def delete_product_ui(product_id):
     app.logger.debug(f"Deleted product ID: {product_id}")
     return redirect(url_for('index'))
 
-# Existing API Routes
+# API Routes
 @app.route('/add-product', methods=['POST'])
 def add_product():
     data = request.get_json()
@@ -223,7 +241,12 @@ def add_product():
         technical_information=data.get('technical_information'),
         manufacturer=data.get('manufacturer'),
         special_note=data.get('special_note'),
-        whatsapp_number=data.get('whatsapp_number')
+        whatsapp_number=data.get('whatsapp_number'),
+        density=data.get('density') if data.get('category') == 'Rubber/sheets' else None,
+        height=data.get('height') if data.get('category') == 'Rubber/sheets' else None,
+        length=data.get('length') if data.get('category') == 'Rubber/sheets' else None,
+        thickness=data.get('thickness') if data.get('category') == 'Rubber/sheets' else None,
+        rubber_description=data.get('rubber_description') if data.get('category') == 'Rubber/sheets' else None
     )
     db.session.add(product)
     db.session.commit()
@@ -268,6 +291,11 @@ def update_product(product_id):
     product.manufacturer = data.get('manufacturer', product.manufacturer)
     product.special_note = data.get('special_note', product.special_note)
     product.whatsapp_number = data.get('whatsapp_number', product.whatsapp_number)
+    product.density = data.get('density', product.density) if data.get('category') == 'Rubber/sheets' else product.density
+    product.height = data.get('height', product.height) if data.get('category') == 'Rubber/sheets' else product.height
+    product.length = data.get('length', product.length) if data.get('category') == 'Rubber/sheets' else product.length
+    product.thickness = data.get('thickness', product.thickness) if data.get('category') == 'Rubber/sheets' else product.thickness
+    product.rubber_description = data.get('rubber_description', product.rubber_description) if data.get('category') == 'Rubber/sheets' else product.rubber_description
     db.session.commit()
     app.logger.debug(f"API: Updated product ID: {product_id}")
     return jsonify({"message": "Product updated"}), 200
