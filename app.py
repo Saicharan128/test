@@ -56,7 +56,8 @@ class Product(db.Model):
     rubber_length = db.Column(db.Float, nullable=True)
     rubber_thickness = db.Column(db.Float, nullable=True)
     rubber_description = db.Column(db.Text, nullable=True)
-    variant = db.Column(db.String(50))  # Single variant selection (e.g., "rubber", "metal", "plastic", "wood")
+    variant_name = db.Column(db.String(50))  # Changed from variant to variant_name
+    variant_price = db.Column(db.Float, nullable=True)  # Added variant_price
 
     def to_dict(self):
         return {
@@ -83,7 +84,8 @@ class Product(db.Model):
             "rubber_length": self.rubber_length,
             "rubber_thickness": self.rubber_thickness,
             "rubber_description": self.rubber_description,
-            "variant": self.variant
+            "variant_name": self.variant_name,
+            "variant_price": self.variant_price
         }
 
 # Create DB
@@ -203,7 +205,8 @@ def add_product_ui():
             rubber_length=float(data.get('rubber_length')) if data.get('rubber_length') else None,
             rubber_thickness=float(data.get('rubber_thickness')) if data.get('rubber_thickness') else None,
             rubber_description=data.get('rubber_description'),
-            variant=data.get('variant')
+            variant_name=data.get('variant_name'),
+            variant_price=float(data.get('variant_price')) if data.get('variant_price') else None
         )
         db.session.add(product)
         db.session.commit()
@@ -267,7 +270,8 @@ def edit_product_ui(product_id):
         product.rubber_length = float(data.get('rubber_length')) if data.get('rubber_length') else None
         product.rubber_thickness = float(data.get('rubber_thickness')) if data.get('rubber_thickness') else None
         product.rubber_description = data.get('rubber_description', product.rubber_description)
-        product.variant = data.get('variant', product.variant)
+        product.variant_name = data.get('variant_name', product.variant_name)
+        product.variant_price = float(data.get('variant_price')) if data.get('variant_price') else product.variant_price
         db.session.commit()
         app.logger.debug(f"Updated product: {product.product_name}, Image URLs: {product.product_image_urls}")
         return redirect(url_for('index'))
@@ -310,7 +314,8 @@ def add_product():
         rubber_length=data.get('rubber_length'),
         rubber_thickness=data.get('rubber_thickness'),
         rubber_description=data.get('rubber_description'),
-        variant=data.get('variant')
+        variant_name=data.get('variant_name'),
+        variant_price=data.get('variant_price')
     )
     db.session.add(product)
     db.session.commit()
@@ -361,7 +366,8 @@ def update_product(product_id):
     product.rubber_length = data.get('rubber_length', product.rubber_length)
     product.rubber_thickness = data.get('rubber_thickness', product.rubber_thickness)
     product.rubber_description = data.get('rubber_description', product.rubber_description)
-    product.variant = data.get('variant', product.variant)
+    product.variant_name = data.get('variant_name', product.variant_name)
+    product.variant_price = data.get('variant_price', product.variant_price)
     db.session.commit()
     app.logger.debug(f"API: Updated product ID: {product_id}")
     return jsonify({"message": "Product updated"}), 200
@@ -385,7 +391,7 @@ def search_products():
         Product.short_description.ilike(f'%{query}%') |
         Product.long_description.ilike(f'%{query}%') |
         Product.rubber_description.ilike(f'%{query}%') |
-        Product.variant.ilike(f'%{query}%')
+        Product.variant_name.ilike(f'%{query}%')
     ).paginate(page=page, per_page=per_page, error_out=False)
     return jsonify({
         "products": [p.to_dict() for p in search_results_pagination.items],
