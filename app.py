@@ -31,6 +31,13 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
 
+# Variant Model
+class Variant(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    variant_name = db.Column(db.String(50), nullable=False)
+    variant_price = db.Column(db.Float, nullable=False)
+
 # Product Model
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -56,8 +63,7 @@ class Product(db.Model):
     rubber_length = db.Column(db.Float, nullable=True)
     rubber_thickness = db.Column(db.Float, nullable=True)
     rubber_description = db.Column(db.Text, nullable=True)
-    variant_name = db.Column(db.String(50))  # Changed from variant to variant_name
-    variant_price = db.Column(db.Float, nullable=True)  # Added variant_price
+    variants = db.relationship('Variant', backref='product', lazy=True, cascade="all, delete-orphan")
 
     def to_dict(self):
         return {
@@ -84,8 +90,7 @@ class Product(db.Model):
             "rubber_length": self.rubber_length,
             "rubber_thickness": self.rubber_thickness,
             "rubber_description": self.rubber_description,
-            "variant_name": self.variant_name,
-            "variant_price": self.variant_price
+            "variants": [{"variant_name": v.variant_name, "variant_price": v.variant_price} for v in self.variants]
         }
 
 # Create DB
@@ -157,6 +162,8 @@ def add_product_ui():
         data = request.form
         images = request.files.getlist('images')
         pdfs = request.files.getlist('pdfs')
+        variant_names = request.form.getlist('variant_name[]')
+        variant_prices = request.form.getlist('variant_price[]')
 
         image_urls = []
         for image in images:
@@ -204,11 +211,21 @@ def add_product_ui():
             rubber_height=float(data.get('rubber_height')) if data.get('rubber_height') else None,
             rubber_length=float(data.get('rubber_length')) if data.get('rubber_length') else None,
             rubber_thickness=float(data.get('rubber_thickness')) if data.get('rubber_thickness') else None,
-            rubber_description=data.get('rubber_description'),
-            variant_name=data.get('variant_name'),
-            variant_price=float(data.get('variant_price')) if data.get('variant_price') else None
+            rubber_description=data.get('rubber_description')
         )
         db.session.add(product)
+        db.session.flush()  # Get product ID before committing
+
+        # Add variants
+        for name, price in zip(variant_names, variant_prices):
+            if name and price:
+                variant = Variant(
+                    product_id=product.id,
+                    variant_name=name,
+                    variant_price=float(price) if price else 0.0
+                )
+                db.session.add(variant)
+
         db.session.commit()
         app.logger.debug(f"Added product: {product.product_name}, Image URLs: {product.product_image_urls}")
         return redirect(url_for('index'))
@@ -223,6 +240,9 @@ def edit_product_ui(product_id):
         data = request.form
         images = request.files.getlist('images')
         pdfs = request.files.getlist('pdfs')
+        variant_names = request.form.getlist('variant_name[]')
+        variant_prices = request.form.getlist('variant_price[]')
+        variant_ids = request.form.getlist('variant_id[]')
 
         image_urls = product.product_image_urls.split(",") if product.product_image_urls else []
         for image in images:
@@ -270,8 +290,33 @@ def edit_product_ui(product_id):
         product.rubber_length = float(data.get('rubber_length')) if data.get('rubber_length') else None
         product.rubber_thickness = float(data.get('rubber_thickness')) if data.get('rubber_thickness') else None
         product.rubber_description = data.get('rubber_description', product.rubber_description)
-        product.variant_name = data.get('variant_name', product.variant_name)
-        product.variant_price = float(data.get('variant_price')) if data.get('variant_price') else product.variant_price
+
+        # Update or add variants
+        existing_variant_ids = set(v.id for v in product.variants)
+        submitted_variant_ids = set(int(vid) for vid in variant_ids if vid)
+        variants_to_delete = existing_variant_ids - submitted_variant_ids
+        for vid in variants_to_delete:
+            variant = Variant.query.get(vid)
+            if variant:
+                db.session.delete(variant)
+
+        for i, (name, price) in enumerate(zip(variant_names, variant_prices)):
+            if name and price:
+                if i < len(variant_ids) and variant_ids[i]:
+                    # Update existing variant
+                    variant = Variant.query.get(int(variant_ids[i]))
+                    if variant:
+                        variant.variant_name = name
+                        variant.variant_price = float(price) if price else 0.0
+                else:
+                    # Add new variant
+                    variant = Variant(
+                        product_id=product.id,
+                        variant_name=name,
+                        variant_price=float(price) if price else 0.0
+                    )
+                    db.session.add(variant)
+
         db.session.commit()
         app.logger.debug(f"Updated product: {product.product_name}, Image URLs: {product.product_image_urls}")
         return redirect(url_for('index'))
@@ -313,11 +358,21 @@ def add_product():
         rubber_height=data.get('rubber_height'),
         rubber_length=data.get('rubber_length'),
         rubber_thickness=data.get('rubber_thickness'),
-        rubber_description=data.get('rubber_description'),
-        variant_name=data.get('variant_name'),
-        variant_price=data.get('variant_price')
+        rubber_description=data.get('rubber_description')
     )
     db.session.add(product)
+    db.session.flush()  # Get product ID before committing
+
+    # Add variants from API
+    for variant_data in data.get('variants', []):
+        if variant_data.get('variant_name') and variant_data.get('variant_price'):
+            variant = Variant(
+                product_id=product.id,
+                variant_name=variant_data.get('variant_name'),
+                variant_price=variant_data.get('variant_price')
+            )
+            db.session.add(variant)
+
     db.session.commit()
     app.logger.debug(f"API: Added product: {product.product_name}")
     return jsonify({"message": "Product added", "product_id": product.id}), 201
@@ -366,8 +421,31 @@ def update_product(product_id):
     product.rubber_length = data.get('rubber_length', product.rubber_length)
     product.rubber_thickness = data.get('rubber_thickness', product.rubber_thickness)
     product.rubber_description = data.get('rubber_description', product.rubber_description)
-    product.variant_name = data.get('variant_name', product.variant_name)
-    product.variant_price = data.get('variant_price', product.variant_price)
+
+    # Update variants
+    existing_variant_ids = set(v.id for v in product.variants)
+    submitted_variant_ids = set(v.get('id', 0) for v in data.get('variants', []) if v.get('id'))
+    variants_to_delete = existing_variant_ids - submitted_variant_ids
+    for vid in variants_to_delete:
+        variant = Variant.query.get(vid)
+        if variant:
+            db.session.delete(variant)
+
+    for variant_data in data.get('variants', []):
+        if variant_data.get('variant_name') and variant_data.get('variant_price'):
+            if variant_data.get('id'):
+                variant = Variant.query.get(variant_data.get('id'))
+                if variant:
+                    variant.variant_name = variant_data.get('variant_name')
+                    variant.variant_price = variant_data.get('variant_price')
+            else:
+                variant = Variant(
+                    product_id=product.id,
+                    variant_name=variant_data.get('variant_name'),
+                    variant_price=variant_data.get('variant_price')
+                )
+                db.session.add(variant)
+
     db.session.commit()
     app.logger.debug(f"API: Updated product ID: {product_id}")
     return jsonify({"message": "Product updated"}), 200
@@ -390,8 +468,7 @@ def search_products():
         Product.category.ilike(f'%{query}%') |
         Product.short_description.ilike(f'%{query}%') |
         Product.long_description.ilike(f'%{query}%') |
-        Product.rubber_description.ilike(f'%{query}%') |
-        Product.variant_name.ilike(f'%{query}%')
+        Product.rubber_description.ilike(f'%{query}%')
     ).paginate(page=page, per_page=per_page, error_out=False)
     return jsonify({
         "products": [p.to_dict() for p in search_results_pagination.items],
