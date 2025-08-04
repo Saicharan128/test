@@ -1,8 +1,9 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory
+from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-import os
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
+import os
 import logging
 
 # Set up logging
@@ -17,11 +18,18 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'pdf'}
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this in production
 
 # Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
+
+# User Model
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
 
 # Product Model
 class Product(db.Model):
@@ -48,6 +56,7 @@ class Product(db.Model):
     rubber_length = db.Column(db.Float, nullable=True)
     rubber_thickness = db.Column(db.Float, nullable=True)
     rubber_description = db.Column(db.Text, nullable=True)
+    variant = db.Column(db.String(50))  # Single variant selection (e.g., "rubber", "metal", "plastic", "wood")
 
     def to_dict(self):
         return {
@@ -73,7 +82,8 @@ class Product(db.Model):
             "rubber_height": self.rubber_height,
             "rubber_length": self.rubber_length,
             "rubber_thickness": self.rubber_thickness,
-            "rubber_description": self.rubber_description
+            "rubber_description": self.rubber_description,
+            "variant": self.variant
         }
 
 # Create DB
@@ -84,6 +94,46 @@ with app.app_context():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
+# Login required decorator
+def login_required(f):
+    def wrap(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    wrap.__name__ = f.__name__
+    return wrap
+
+# Authentication Routes
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if User.query.filter_by(username=username).first():
+            return render_template('register.html', error="Username already exists")
+        user = User(username=username, password_hash=generate_password_hash(password))
+        db.session.add(user)
+        db.session.commit()
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password_hash, password):
+            session['user_id'] = user.id
+            return redirect(url_for('index'))
+        return render_template('login.html', error="Invalid credentials")
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    return redirect(url_for('login'))
+
 # Serve static files explicitly (for debugging)
 @app.route('/static/uploads/<path:filename>')
 def serve_uploaded_file(filename):
@@ -91,6 +141,7 @@ def serve_uploaded_file(filename):
 
 # UI Routes
 @app.route('/')
+@login_required
 def index():
     page = request.args.get('page', 1, type=int)
     per_page = 10
@@ -98,6 +149,7 @@ def index():
     return render_template('index.html', products=products_pagination.items, pagination=products_pagination)
 
 @app.route('/add', methods=['GET', 'POST'])
+@login_required
 def add_product_ui():
     if request.method == 'POST':
         data = request.form
@@ -150,7 +202,8 @@ def add_product_ui():
             rubber_height=float(data.get('rubber_height')) if data.get('rubber_height') else None,
             rubber_length=float(data.get('rubber_length')) if data.get('rubber_length') else None,
             rubber_thickness=float(data.get('rubber_thickness')) if data.get('rubber_thickness') else None,
-            rubber_description=data.get('rubber_description')
+            rubber_description=data.get('rubber_description'),
+            variant=data.get('variant')
         )
         db.session.add(product)
         db.session.commit()
@@ -160,6 +213,7 @@ def add_product_ui():
     return render_template('add_product.html')
 
 @app.route('/edit/<int:product_id>', methods=['GET', 'POST'])
+@login_required
 def edit_product_ui(product_id):
     product = Product.query.get_or_404(product_id)
     if request.method == 'POST':
@@ -213,6 +267,7 @@ def edit_product_ui(product_id):
         product.rubber_length = float(data.get('rubber_length')) if data.get('rubber_length') else None
         product.rubber_thickness = float(data.get('rubber_thickness')) if data.get('rubber_thickness') else None
         product.rubber_description = data.get('rubber_description', product.rubber_description)
+        product.variant = data.get('variant', product.variant)
         db.session.commit()
         app.logger.debug(f"Updated product: {product.product_name}, Image URLs: {product.product_image_urls}")
         return redirect(url_for('index'))
@@ -220,6 +275,7 @@ def edit_product_ui(product_id):
     return render_template('edit_product.html', product=product)
 
 @app.route('/delete/<int:product_id>', methods=['POST'])
+@login_required
 def delete_product_ui(product_id):
     product = Product.query.get_or_404(product_id)
     db.session.delete(product)
@@ -253,7 +309,8 @@ def add_product():
         rubber_height=data.get('rubber_height'),
         rubber_length=data.get('rubber_length'),
         rubber_thickness=data.get('rubber_thickness'),
-        rubber_description=data.get('rubber_description')
+        rubber_description=data.get('rubber_description'),
+        variant=data.get('variant')
     )
     db.session.add(product)
     db.session.commit()
@@ -304,6 +361,7 @@ def update_product(product_id):
     product.rubber_length = data.get('rubber_length', product.rubber_length)
     product.rubber_thickness = data.get('rubber_thickness', product.rubber_thickness)
     product.rubber_description = data.get('rubber_description', product.rubber_description)
+    product.variant = data.get('variant', product.variant)
     db.session.commit()
     app.logger.debug(f"API: Updated product ID: {product_id}")
     return jsonify({"message": "Product updated"}), 200
@@ -326,7 +384,8 @@ def search_products():
         Product.category.ilike(f'%{query}%') |
         Product.short_description.ilike(f'%{query}%') |
         Product.long_description.ilike(f'%{query}%') |
-        Product.rubber_description.ilike(f'%{query}%')
+        Product.rubber_description.ilike(f'%{query}%') |
+        Product.variant.ilike(f'%{query}%')
     ).paginate(page=page, per_page=per_page, error_out=False)
     return jsonify({
         "products": [p.to_dict() for p in search_results_pagination.items],
