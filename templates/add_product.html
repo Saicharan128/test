@@ -4,162 +4,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>Add Product - Product Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100">
-    <nav class="bg-red-600 p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center">
-                <img src="/static/images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg" alt="Logo" class="h-10 mr-4">
-                <a href="/" class="text-white text-2xl font-bold">Product Management</a>
+<body class="bg-gray-100 font-sans">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <img src="/static/images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg" alt="Product Management Logo" class="h-10 w-auto">
+                    <span class="ml-3 text-xl font-semibold text-gray-800">Product Management</span>
+                </div>
+                <div class="flex items-center">
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-button"
+                        class="md:hidden text-gray-600 hover:text-gray-800 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                    <!-- Desktop menu -->
+                    <div class="hidden md:flex space-x-4">
+                        <a href="{{ url_for('index') }}"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                        <a href="#"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Store</a>
+                        {% if session.user_id %}
+                        <a href="{{ url_for('logout') }}"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Logout</a>
+                        {% else %}
+                        <a href="{{ url_for('login') }}"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Login</a>
+                        <a href="{{ url_for('register') }}"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Register</a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            <div class="space-x-4">
-                <a href="/" class="text-white hover:text-gray-200">Home</a>
-                <a href="/store" class="text-white hover:text-gray-200">Store</a>
-                {% if session.user_id %}
-                <a href="/logout" class="text-white hover:text-gray-200">Logout</a>
-                {% else %}
-                <a href="/login" class="text-white hover:text-gray-200">Login</a>
-                <a href="/register" class="text-white hover:text-gray-200">Register</a>
-                {% endif %}
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden bg-white shadow-md">
+                <div class="px-2 pt-2 pb-3 space-y-1">
+                    <a href="{{ url_for('index') }}"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Home</a>
+                    <a href="#"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Store</a>
+                    {% if session.user_id %}
+                    <a href="{{ url_for('logout') }}"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Logout</a>
+                    {% else %}
+                    <a href="{{ url_for('login') }}"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Login</a>
+                    <a href="{{ url_for('register') }}"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Register</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-4">Add New Product</h1>
-        <form action="/add" method="POST" enctype="multipart/form-data">
-            <div class="mb-4">
-                <label for="category" class="block text-gray-700">Category</label>
-                <input type="text" id="category" name="category" class="w-full p-2 border rounded">
-            </div>
-            <div class="mb-4">
-                <label for="product_name" class="block text-gray-700">Product Name</label>
-                <input type="text" id="product_name" name="product_name" class="w-full p-2 border rounded">
-            </div>
-            <div class="mb-4">
-                <label for="brand" class="block text-gray-700">Brand</label>
-                <input type="text" id="brand" name="brand" class="w-full p-2 border rounded">
-            </div>
-            <div class="mb-4">
-                <label for="short_description" class="block text-gray-700">Short Description</label>
-                <textarea id="short_description" name="short_description" class="w-full p-2 border rounded"></textarea>
-            </div>
-            <div class="mb-4">
-                <label for="long_description" class="block text-gray-700">Long Description</label>
-                <textarea id="long_description" name="long_description" class="w-full p-2 border rounded"></textarea>
-            </div>
-            <div class="mb-4">
-                <label for="detailed_description" class="block text-gray-700">Detailed Description</label>
-                <textarea id="detailed_description" name="detailed_description"
-                    class="w-full p-2 border rounded"></textarea>
-            </div>
-            <div class="mb-4">
-                <label for="mrp" class="block text-gray-700">MRP</label>
-                <input type="number" id="mrp" name="mrp" step="0.01" class="w-full p-2 border rounded">
-            </div>
-            <div class="mb-4">
-                <label for="offer_price" class="block text-gray-700">Offer Price</label>
-                <input type="number" id="offer_price" name="offer_price" step="0.01" class="w-full p-2 border rounded">
-            </div>
-            <div class="mb-4">
-                <label for="sku" class="block text-gray-700">SKU#</label>
-                <input type="text" id="sku" name="sku" class="w-full p-2 border rounded">
-            </div>
-            <div class="mb-4">
-                <label for="in_stock" class="block text-gray-700">In Stock</label>
-                <input type="checkbox" id="in_stock" name="in_stock" checked>
-            </div>
-            <div class="mb-4">
-                <label for="stock_number" class="block text-gray-700">Stock Number</label>
-                <input type="number" id="stock_number" name="stock_number" class="w-full p-2 border rounded">
-            </div>
-            <div class="mb-4">
-                <label for="show_in_store" class="block text-gray-700">Show in Store</label>
-                <input type="checkbox" id="show_in_store" name="show_in_store" checked>
-            </div>
-            <div class="mb-4">
-                <label for="images" class="block text-gray-700">Product Images</label>
-                <input type="file" id="images" name="images" multiple accept="image/*">
-            </div>
-            <div class="mb-4">
-                <label for="pdfs" class="block text-gray-700">PDF Files</label>
-                <input type="file" id="pdfs" name="pdfs" multiple accept=".pdf">
-            </div>
-            <div class="mb-4">
-                <label for="additional_media" class="block text-gray-700">Additional Media (e.g., Videos)</label>
-                <input type="file" id="additional_media" name="additional_media" multiple accept="video/*">
-            </div>
-            <div class="mb-4">
-                <label for="youtube_links" class="block text-gray-700">YouTube Links (comma-separated)</label>
-                <input type="text" id="youtube_links" name="youtube_links" class="w-full p-2 border rounded">
-            </div>
-            <div class="mb-4">
-                <label for="technical_information" class="block text-gray-700">Technical Information (table format,
-                    e.g., | Key | Value |)</label>
-                <textarea id="technical_information" name="technical_information"
-                    class="w-full p-2 border rounded"></textarea>
-            </div>
-            <div class="mb-4">
-                <label for="manufacturer" class="block text-gray-700">Manufacturer</label>
-                <input type="text" id="manufacturer" name="manufacturer" class="w-full p-2 border rounded">
-            </div>
-            <div class="mb-4">
-                <label for="special_note" class="block text-gray-700">Special Note</label>
-                <textarea id="special_note" name="special_note" class="w-full p-2 border rounded"></textarea>
-            </div>
-            <div class="mb-4">
-                <label for="whatsapp_number" class="block text-gray-700">WhatsApp Number</label>
-                <input type="text" id="whatsapp_number" name="whatsapp_number" class="w-full p-2 border rounded">
-            </div>
-            <div class="mb-4">
-                <label for="is_rubber" class="block text-gray-700">Is Rubber Product</label>
-                <input type="checkbox" id="is_rubber" name="is_rubber">
-            </div>
-            <div class="mb-4">
-                <label for="rubber_density" class="block text-gray-700">Rubber Density</label>
-                <input type="number" id="rubber_density" name="rubber_density" step="0.01"
-                    class="w-full p-2 border rounded">
-                <label for="rubber_height" class="block text-gray-700">Rubber Height</label>
-                <input type="number" id="rubber_height" name="rubber_height" step="0.01"
-                    class="w-full p-2 border rounded">
-                <label for="rubber_length" class="block text-gray-700">Rubber Length</label>
-                <input type="number" id="rubber_length" name="rubber_length" step="0.01"
-                    class="w-full p-2 border rounded">
-                <label for="rubber_thickness" class="block text-gray-700">Rubber Thickness</label>
-                <input type="number" id="rubber_thickness" name="rubber_thickness" step="0.01"
-                    class="w-full p-2 border rounded">
-                <label for="rubber_description" class="block text-gray-700">Rubber Description</label>
-                <textarea id="rubber_description" name="rubber_description"
-                    class="w-full p-2 border rounded"></textarea>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700">Variants</label>
-                <div class="flex mb-2">
-                    <input type="text" name="variant_names" placeholder="Variant Name"
-                        class="w-1/2 p-2 border rounded mr-2">
-                    <input type="number" name="variant_prices" placeholder="Variant Price" step="0.01"
-                        class="w-1/2 p-2 border rounded">
+    <!-- Main Content -->
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Add New Product</h1>
+
+        <form method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-md shadow-md">
+            <div class="grid grid-cols-1 gap-4">
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+                    <input type="text" name="category" id="category"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 </div>
-                <button type="button" onclick="addVariantField()" class="text-blue-500">Add Another Variant</button>
+                <div>
+                    <label for="product_name" class="block text-sm font-medium text-gray-700">Product Name</label>
+                    <input type="text" name="product_name" id="product_name"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="brand" class="block text-sm font-medium text-gray-700">Brand</label>
+                    <input type="text" name="brand" id="brand"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="short_description" class="block text-sm font-medium text-gray-700">Short
+                        Description</label>
+                    <textarea name="short_description" id="short_description"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+                </div>
+                <div>
+                    <label for="long_description" class="block text-sm font-medium text-gray-700">Long
+                        Description</label>
+                    <textarea name="long_description" id="long_description"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+                </div>
+                <div>
+                    <label for="detailed_description" class="block text-sm font-medium text-gray-700">Detailed
+                        Description</label>
+                    <textarea name="detailed_description" id="detailed_description"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+                </div>
+                <div>
+                    <label for="mrp" class="block text-sm font-medium text-gray-700">MRP</label>
+                    <input type="number" name="mrp" id="mrp" step="0.01"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="offer_price" class="block text-sm font-medium text-gray-700">Offer Price</label>
+                    <input type="number" name="offer_price" id="offer_price" step="0.01"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="sku" class="block text-sm font-medium text-gray-700">SKU#</label>
+                    <input type="text" name="sku" id="sku"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="in_stock" class="block text-sm font-medium text-gray-700">In Stock</label>
+                    <input type="checkbox" name="in_stock" id="in_stock"
+                        class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                </div>
+                <div>
+                    <label for="stock_number" class="block text-sm font-medium text-gray-700">Stock Number</label>
+                    <input type="number" name="stock_number" id="stock_number"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="show_in_store" class="block text-sm font-medium text-gray-700">Show in Store</label>
+                    <input type="checkbox" name="show_in_store" id="show_in_store"
+                        class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                </div>
+                <div>
+                    <label for="images" class="block text-sm font-medium text-gray-700">Product Images</label>
+                    <input type="file" name="images" id="images" multiple accept="image/*"
+                        class="mt-1 block w-full text-sm text-gray-500">
+                </div>
+                <div>
+                    <label for="pdfs" class="block text-sm font-medium text-gray-700">PDF Files</label>
+                    <input type="file" name="pdfs" id="pdfs" multiple accept=".pdf"
+                        class="mt-1 block w-full text-sm text-gray-500">
+                </div>
+                <div>
+                    <label for="additional_media" class="block text-sm font-medium text-gray-700">Additional Media
+                        (e.g., Videos)</label>
+                    <input type="file" name="additional_media" id="additional_media" multiple accept="video/*"
+                        class="mt-1 block w-full text-sm text-gray-500">
+                </div>
+                <div>
+                    <label for="youtube_links" class="block text-sm font-medium text-gray-700">YouTube Links
+                        (comma-separated)</label>
+                    <input type="text" name="youtube_links" id="youtube_links"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="technical_information" class="block text-sm font-medium text-gray-700">Technical
+                        Information (table format, e.g., | Key | Value |)</label>
+                    <textarea name="technical_information" id="technical_information"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+                </div>
+                <div>
+                    <label for="manufacturer" class="block text-sm font-medium text-gray-700">Manufacturer</label>
+                    <input type="text" name="manufacturer" id="manufacturer"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="special_note" class="block text-sm font-medium text-gray-700">Special Note</label>
+                    <textarea name="special_note" id="special_note"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+                </div>
+                <div>
+                    <label for="whatsapp_number" class="block text-sm font-medium text-gray-700">WhatsApp Number</label>
+                    <input type="text" name="whatsapp_number" id="whatsapp_number"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="is_rubber" class="block text-sm font-medium text-gray-700">Is Rubber Product</label>
+                    <input type="checkbox" name="is_rubber" id="is_rubber"
+                        class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                </div>
+                <div>
+                    <label for="rubber_density" class="block text-sm font-medium text-gray-700">Rubber Density</label>
+                    <input type="number" name="rubber_density" id="rubber_density" step="0.01"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="rubber_height" class="block text-sm font-medium text-gray-700">Rubber Height</label>
+                    <input type="number" name="rubber_height" id="rubber_height" step="0.01"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="rubber_length" class="block text-sm font-medium text-gray-700">Rubber Length</label>
+                    <input type="number" name="rubber_length" id="rubber_length" step="0.01"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="rubber_thickness" class="block text-sm font-medium text-gray-700">Rubber
+                        Thickness</label>
+                    <input type="number" name="rubber_thickness" id="rubber_thickness" step="0.01"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="rubber_description" class="block text-sm font-medium text-gray-700">Rubber
+                        Description</label>
+                    <textarea name="rubber_description" id="rubber_description"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Variants</label>
+                    <div id="variant-container">
+                        <div class="flex space-x-2 mb-2">
+                            <input type="text" name="variant_name_0" placeholder="Variant Name"
+                                class="block w-1/2 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <input type="number" name="variant_price_0" placeholder="Variant Price" step="0.01"
+                                class="block w-1/2 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                    </div>
+                    <button type="button" id="add-variant" class="text-blue-600 hover:underline">Add Another
+                        Variant</button>
+                </div>
             </div>
-            <button type="submit" class="bg-blue-500 text-white p-2 rounded">Add Product</button>
-            <a href="/" class="bg-gray-500 text-white p-2 rounded">Cancel</a>
+            <div class="mt-6 flex space-x-4">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Add
+                    Product</button>
+                <a href="{{ url_for('index') }}"
+                    class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Cancel</a>
+            </div>
         </form>
     </div>
 
+    <!-- Mobile Menu Script -->
     <script>
-        function addVariantField() {
-            const variantDiv = document.createElement('div');
-            variantDiv.className = 'flex mb-2';
-            variantDiv.innerHTML = `
-                <input type="text" name="variant_names" placeholder="Variant Name" class="w-1/2 p-2 border rounded mr-2">
-                <input type="number" name="variant_prices" placeholder="Variant Price" step="0.01" class="w-1/2 p-2 border rounded">
+        document.getElementById('mobile-menu-button').addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        let variantIndex = 1;
+        document.getElementById('add-variant').addEventListener('click', () => {
+            const container = document.getElementById('variant-container');
+            const newVariant = document.createElement('div');
+            newVariant.className = 'flex space-x-2 mb-2';
+            newVariant.innerHTML = `
+                <input type="text" name="variant_name_${variantIndex}" placeholder="Variant Name" class="block w-1/2 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <input type="number" name="variant_price_${variantIndex}" placeholder="Variant Price" step="0.01" class="block w-1/2 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
             `;
-            document.querySelector('form').insertBefore(variantDiv, document.querySelector('button[onclick="addVariantField()"]'));
-        }
+            container.appendChild(newVariant);
+            variantIndex++;
+        });
     </script>
 </body>
 

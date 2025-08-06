@@ -4,48 +4,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>Login - Product Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100">
-    <nav class="bg-red-600 p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center">
-                <img src="/static/images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg" alt="Logo" class="h-10 mr-4">
-                <a href="/" class="text-white text-2xl font-bold">Product Management</a>
+<body class="bg-gray-100 font-sans">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <img src="/static/images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg" alt="Product Management Logo" class="h-10 w-auto">
+                    <span class="ml-3 text-xl font-semibold text-gray-800">Product Management</span>
+                </div>
+                <div class="flex items-center">
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-button"
+                        class="md:hidden text-gray-600 hover:text-gray-800 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                    <!-- Desktop menu -->
+                    <div class="hidden md:flex space-x-4">
+                        <a href="{{ url_for('index') }}"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                        <a href="#"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Store</a>
+                        {% if session.user_id %}
+                        <a href="{{ url_for('logout') }}"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Logout</a>
+                        {% else %}
+                        <a href="{{ url_for('login') }}"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Login</a>
+                        <a href="{{ url_for('register') }}"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Register</a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            <div class="space-x-4">
-                <a href="/" class="text-white hover:text-gray-200">Home</a>
-                <a href="/store" class="text-white hover:text-gray-200">Store</a>
-                {% if session.user_id %}
-                <a href="/logout" class="text-white hover:text-gray-200">Logout</a>
-                {% else %}
-                <a href="/login" class="text-white hover:text-gray-200">Login</a>
-                <a href="/register" class="text-white hover:text-gray-200">Register</a>
-                {% endif %}
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden bg-white shadow-md">
+                <div class="px-2 pt-2 pb-3 space-y-1">
+                    <a href="{{ url_for('index') }}"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Home</a>
+                    <a href="#"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Store</a>
+                    {% if session.user_id %}
+                    <a href="{{ url_for('logout') }}"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Logout</a>
+                    {% else %}
+                    <a href="{{ url_for('login') }}"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Login</a>
+                    <a href="{{ url_for('register') }}"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Register</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-4">Login</h1>
+    <!-- Main Content -->
+    <div class="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Login</h1>
+
         {% if error %}
-        <p class="text-red-500">{{ error }}</p>
+        <div class="bg-red-100 text-red-700 p-4 rounded-md mb-6">
+            {{ error }}
+        </div>
         {% endif %}
-        <form action="/login" method="POST">
+
+        <form method="POST" class="bg-white p-6 rounded-md shadow-md">
             <div class="mb-4">
-                <label for="username" class="block text-gray-700">Username</label>
-                <input type="text" id="username" name="username" class="w-full p-2 border rounded">
+                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                <input type="text" name="username" id="username" required
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
             </div>
             <div class="mb-4">
-                <label for="password" class="block text-gray-700">Password</label>
-                <input type="password" id="password" name="password" class="w-full p-2 border rounded">
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" name="password" id="password" required
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
             </div>
-            <button type="submit" class="bg-blue-500 text-white p-2 rounded">Login</button>
+            <button type="submit"
+                class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Login</button>
         </form>
-        <p class="mt-4">Don't have an account? <a href="/register" class="text-blue-500">Register</a></p>
+
+        <p class="mt-4 text-center text-sm text-gray-600">
+            Don't have an account? <a href="{{ url_for('register') }}"
+                class="text-blue-600 hover:underline">Register</a>
+        </p>
     </div>
+
+    <!-- Mobile Menu Script -->
+    <script>
+        document.getElementById('mobile-menu-button').addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
 </body>
 
 </html>

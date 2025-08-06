@@ -5,188 +5,257 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100">
-    <nav class="bg-red-600 p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center">
-                <img src="/static/images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg" alt="Logo" class="h-10 mr-4">
-                <a href="/" class="text-white text-2xl font-bold">Product Management</a>
+<body class="bg-gray-100 font-sans">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <img src="/static/images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg" alt="Product Management Logo" class="h-10 w-auto">
+                    <span class="ml-3 text-xl font-semibold text-gray-800">Product Management</span>
+                </div>
+                <div class="flex items-center">
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-button"
+                        class="md:hidden text-gray-600 hover:text-gray-800 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                    <!-- Desktop menu -->
+                    <div class="hidden md:flex space-x-4">
+                        <a href="{{ url_for('index') }}"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                        <a href="#"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Store</a>
+                        {% if session.user_id %}
+                        <a href="{{ url_for('logout') }}"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Logout</a>
+                        {% else %}
+                        <a href="{{ url_for('login') }}"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Login</a>
+                        <a href="{{ url_for('register') }}"
+                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Register</a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            <div class="space-x-4">
-                <a href="/" class="text-white hover:text-gray-200">Home</a>
-                <a href="/store" class="text-white hover:text-gray-200">Store</a>
-                {% if session.user_id %}
-                <a href="/logout" class="text-white hover:text-gray-200">Logout</a>
-                {% else %}
-                <a href="/login" class="text-white hover:text-gray-200">Login</a>
-                <a href="/register" class="text-white hover:text-gray-200">Register</a>
-                {% endif %}
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden bg-white shadow-md">
+                <div class="px-2 pt-2 pb-3 space-y-1">
+                    <a href="{{ url_for('index') }}"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Home</a>
+                    <a href="#"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Store</a>
+                    {% if session.user_id %}
+                    <a href="{{ url_for('logout') }}"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Logout</a>
+                    {% else %}
+                    <a href="{{ url_for('login') }}"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Login</a>
+                    <a href="{{ url_for('register') }}"
+                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Register</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-4">Product Management</h1>
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Product Management</h1>
+
         {% if error %}
-        <p class="text-red-500">{{ error }}</p>
+        <div class="bg-red-100 text-red-700 p-4 rounded-md mb-6">
+            {{ error }}
+        </div>
         {% endif %}
-        <a href="/add" class="bg-blue-500 text-white p-2 rounded mb-4 inline-block">Add New Product</a>
-        <form action="/" method="GET" class="mb-4">
-            <div class="flex space-x-4">
+
+        <a href="{{ url_for('add_product_ui') }}"
+            class="inline-block bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 mb-6">Add New Product</a>
+
+        <!-- Search and Filters -->
+        <form class="mb-6 bg-white p-4 rounded-md shadow-md">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div>
-                    <label for="q" class="block text-gray-700">Search</label>
-                    <input type="text" id="q" name="q" value="{{ query }}" class="p-2 border rounded">
+                    <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
+                    <input type="text" name="q" id="search" value="{{ query }}"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Search products...">
                 </div>
                 <div>
-                    <label for="category" class="block text-gray-700">Category</label>
-                    <input type="text" id="category" name="category" class="p-2 border rounded">
+                    <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+                    <input type="text" name="category" id="category"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Category">
                 </div>
                 <div>
-                    <label for="brand" class="block text-gray-700">Brand</label>
-                    <input type="text" id="brand" name="brand" class="p-2 border rounded">
+                    <label for="brand" class="block text-sm font-medium text-gray-700">Brand</label>
+                    <input type="text" name="brand" id="brand"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Brand">
                 </div>
                 <div>
-                    <label for="in_stock" class="block text-gray-700">Stock Status</label>
-                    <select id="in_stock" name="in_stock" class="p-2 border rounded">
+                    <label for="in_stock" class="block text-sm font-medium text-gray-700">Stock Status</label>
+                    <select name="in_stock" id="in_stock"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                         <option value="">All</option>
                         <option value="true">In Stock</option>
                         <option value="false">Out of Stock</option>
                     </select>
                 </div>
                 <div>
-                    <label for="show_in_store" class="block text-gray-700">Store Visibility</label>
-                    <select id="show_in_store" name="show_in_store" class="p-2 border rounded">
+                    <label for="show_in_store" class="block text-sm font-medium text-gray-700">Store Visibility</label>
+                    <select name="show_in_store" id="show_in_store"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                         <option value="">All</option>
                         <option value="true">Shown</option>
                         <option value="false">Hidden</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-gray-700">Search/Filter</label>
-                    <button type="submit" class="bg-blue-500 text-white p-2 rounded">Apply</button>
-                </div>
             </div>
+            <button type="submit"
+                class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Apply</button>
         </form>
 
-        <h2 class="text-xl font-bold mb-2">Previous Orders</h2>
+        <!-- Previous Orders -->
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Previous Orders</h2>
         {% if orders %}
-        <ul class="mb-4">
-            {% for order in orders %}
-            <li class="border p-2 mb-2">
-                <p><strong>{{ order.product.product_name }}</strong></p>
-                <p>Quantity: {{ order.quantity }}</p>
-                <p>Order Date: {{ order.order_date.strftime('%Y-%m-%d') }}</p>
-                <p>Status: {{ order.status }}</p>
-            </li>
-            {% endfor %}
-        </ul>
+        <div class="bg-white shadow-md rounded-md mb-6">
+            <ul class="divide-y divide-gray-200">
+                {% for order in orders %}
+                <li class="p-4">
+                    <p class="font-medium text-gray-800">{{ order.product.product_name }}</p>
+                    <p class="text-sm text-gray-600">Quantity: {{ order.quantity }}</p>
+                    <p class="text-sm text-gray-600">Order Date: {{ order.order_date.strftime('%Y-%m-%d') }}</p>
+                    <p class="text-sm text-gray-600">Status: {{ order.status }}</p>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
         {% else %}
-        <p>No previous orders.</p>
+        <p class="text-gray-600 mb-6">No previous orders.</p>
         {% endif %}
 
-        <h2 class="text-xl font-bold mb-2">Products</h2>
-        <form action="/delete-products" method="POST">
-            <button type="submit" class="bg-red-500 text-white p-2 rounded mb-4">Delete Selected</button>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Products -->
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Products</h2>
+        <form method="POST" action="{{ url_for('delete_products') }}">
+            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 mb-4">Delete
+                Selected</button>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for product in products %}
-                <div class="border p-4 rounded">
-                    <input type="checkbox" name="product_ids[]" value="{{ product.id }}">
-                    <div>
-                        {% if product.product_image_urls %}
-                        <img src="{{ product.product_image_urls.split(',')[0] }}" alt="Product Image"
-                            class="w-full h-48 object-cover mb-2">
-                        {% else %}
-                        <p>No images available</p>
-                        {% endif %}
-                        <h3 class="text-lg font-bold">{{ product.product_name }}</h3>
-                        <p>{{ product.short_description }}</p>
-                        <p><strong>Brand:</strong> {{ product.brand }}</p>
-                        <p><strong>Category:</strong> {{ product.category }}</p>
-                        <p><strong>MRP:</strong> ${{ product.mrp }} | <strong>Offer Price:</strong> ${{
-                            product.offer_price }}</p>
-                        <p><strong>SKU#:</strong> {{ product.sku }}</p>
-                        <p><strong>In Stock:</strong> {{ "Yes" if product.in_stock else "No" }} ({{ product.stock_number
-                            }} units)</p>
-                        <p><strong>Show in Store:</strong> {{ "Yes" if product.show_in_store else "No" }}</p>
-                        {% if product.variants %}
-                        <p><strong>Variants:</strong></p>
-                        <ul>
-                            {% for variant in product.variants %}
-                            <li>{{ variant.variant_name }}: ${{ variant.variant_price }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                        {% if product.is_rubber %}
-                        <p><strong>Rubber Specifications:</strong></p>
-                        <ul>
-                            {% if product.rubber_density %}<li>Density: {{ product.rubber_density }}</li>{% endif %}
-                            {% if product.rubber_height %}<li>Height: {{ product.rubber_height }}</li>{% endif %}
-                            {% if product.rubber_length %}<li>Length: {{ product.rubber_length }}</li>{% endif %}
-                            {% if product.rubber_thickness %}<li>Thickness: {{ product.rubber_thickness }}</li>{% endif
-                            %}
-                            {% if product.rubber_description %}<li>Description: {{ product.rubber_description }}</li>{%
-                            endif %}
-                        </ul>
-                        {% endif %}
-                        {% if product.youtube_links %}
-                        <p><strong>YouTube Links:</strong></p>
-                        <ul>
-                            {% for link in product.youtube_links.split(',') %}
-                            <li><a href="{{ link }}" target="_blank">Watch</a></li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                        {% if product.additional_media_urls %}
-                        <p><strong>Additional Media:</strong></p>
-                        <ul>
-                            {% for media in product.additional_media_urls.split(',') %}
-                            <li><a href="{{ media }}" target="_blank">View</a></li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                        {% if product.technical_information %}
-                        <p><strong>Technical Information:</strong> {{ product.technical_information|safe }}</p>
-                        {% endif %}
-                        <p><strong>Manufacturer:</strong> {{ product.manufacturer }}</p>
-                        <p><strong>Special Note:</strong> {{ product.special_note }}</p>
-                        <p><strong>WhatsApp:</strong> {{ product.whatsapp_number }}</p>
-                        {% if product.download_pdfs %}
-                        <p><strong>PDFs:</strong></p>
-                        <ul>
-                            {% for pdf in product.download_pdfs.split(',') %}
-                            <li><a href="{{ pdf }}" target="_blank">Download PDF</a></li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                        <a href="/edit/{{ product.id }}" class="text-blue-500">Edit</a>
-                    </div>
+                <div class="bg-white shadow-md rounded-md p-4">
+                    <input type="checkbox" name="product_ids[]" value="{{ product.id }}" class="mb-2">
+                    {% if product.product_image_urls %}
+                    <img src="{{ product.product_image_urls.split(',')[0] }}" alt="{{ product.product_name }}"
+                        class="w-full h-48 object-cover rounded-md mb-2">
+                    {% else %}
+                    <p class="text-gray-600 mb-2">No images available</p>
+                    {% endif %}
+                    <h3 class="text-lg font-semibold text-gray-800">{{ product.product_name }}</h3>
+                    <p class="text-gray-600">{{ product.short_description }}</p>
+                    <p class="text-sm text-gray-600">Brand: {{ product.brand }}</p>
+                    <p class="text-sm text-gray-600">Category: {{ product.category }}</p>
+                    <p class="text-sm text-gray-600">MRP: ${{ product.mrp }} | Offer Price: ${{ product.offer_price }}
+                    </p>
+                    <p class="text-sm text-gray-600">SKU#: {{ product.sku }}</p>
+                    <p class="text-sm text-gray-600">In Stock: {{ 'Yes' if product.in_stock else 'No' }} ({{
+                        product.stock_number }} units)</p>
+                    <p class="text-sm text-gray-600">Show in Store: {{ 'Yes' if product.show_in_store else 'No' }}</p>
+                    {% if product.variants %}
+                    <p class="text-sm text-gray-600">Variants:</p>
+                    <ul class="list-disc pl-5">
+                        {% for variant in product.variants %}
+                        <li class="text-sm text-gray-600">{{ variant.variant_name }}: ${{ variant.variant_price }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% if product.is_rubber %}
+                    <p class="text-sm text-gray-600">Rubber Specifications:</p>
+                    <ul class="list-disc pl-5">
+                        {% if product.rubber_density %}<li class="text-sm text-gray-600">Density: {{
+                            product.rubber_density }}</li>{% endif %}
+                        {% if product.rubber_height %}<li class="text-sm text-gray-600">Height: {{ product.rubber_height
+                            }}</li>{% endif %}
+                        {% if product.rubber_length %}<li class="text-sm text-gray-600">Length: {{ product.rubber_length
+                            }}</li>{% endif %}
+                        {% if product.rubber_thickness %}<li class="text-sm text-gray-600">Thickness: {{
+                            product.rubber_thickness }}</li>{% endif %}
+                        {% if product.rubber_description %}<li class="text-sm text-gray-600">Description: {{
+                            product.rubber_description }}</li>{% endif %}
+                    </ul>
+                    {% endif %}
+                    {% if product.youtube_links %}
+                    <p class="text-sm text-gray-600">YouTube Links:</p>
+                    <ul class="list-disc pl-5">
+                        {% for link in product.youtube_links.split(',') %}
+                        <li><a href="{{ link }}" class="text-blue-600 hover:underline" target="_blank">Watch</a></li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% if product.additional_media_urls %}
+                    <p class="text-sm text-gray-600">Additional Media:</p>
+                    <ul class="list-disc pl-5">
+                        {% for media in product.additional_media_urls.split(',') %}
+                        <li><a href="{{ media }}" class="text-blue-600 hover:underline" target="_blank">View</a></li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% if product.technical_information %}
+                    <p class="text-sm text-gray-600">Technical Information: {{ product.technical_information|safe }}</p>
+                    {% endif %}
+                    <p class="text-sm text-gray-600">Manufacturer: {{ product.manufacturer }}</p>
+                    <p class="text-sm text-gray-600">Special Note: {{ product.special_note }}</p>
+                    <p class="text-sm text-gray-600">WhatsApp: {{ product.whatsapp_number }}</p>
+                    {% if product.download_pdfs %}
+                    <p class="text-sm text-gray-600">PDFs:</p>
+                    <ul class="list-disc pl-5">
+                        {% for pdf in product.download_pdfs.split(',') %}
+                        <li><a href="{{ pdf }}" class="text-blue-600 hover:underline" target="_blank">Download PDF</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    <a href="{{ url_for('edit_product', product_id=product.id) }}"
+                        class="inline-block bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 mt-2">Edit</a>
                 </div>
                 {% endfor %}
             </div>
         </form>
 
-        <div class="mt-4 flex justify-center space-x-2">
+        <!-- Pagination -->
+        <div class="mt-6 flex justify-center space-x-2">
             {% if pagination.has_prev %}
-            <a href="?page={{ pagination.prev_num }}{% if query %}&q={{ query }}{% endif %}"
-                class="bg-blue-500 text-white p-2 rounded">Previous</a>
+            <a href="{{ url_for('index', page=pagination.prev_num, q=query) }}"
+                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Previous</a>
             {% endif %}
             {% for page in pagination.iter_pages() %}
             {% if page %}
-            <a href="?page={{ page }}{% if query %}&q={{ query }}{% endif %}"
-                class="bg-blue-500 text-white p-2 rounded">{{ page }}</a>
+            <a href="{{ url_for('index', page=page, q=query) }}"
+                class="px-4 py-2 {{ 'bg-blue-600 text-white' if page == pagination.page else 'bg-gray-200 text-gray-700' }} rounded-md hover:bg-blue-700">{{
+                page }}</a>
             {% else %}
-            <span>...</span>
+            <span class="px-4 py-2 text-gray-700">...</span>
             {% endif %}
             {% endfor %}
             {% if pagination.has_next %}
-            <a href="?page={{ pagination.next_num }}{% if query %}&q={{ query }}{% endif %}"
-                class="bg-blue-500 text-white p-2 rounded">Next</a>
+            <a href="{{ url_for('index', page=pagination.next_num, q=query) }}"
+                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Next</a>
             {% endif %}
         </div>
     </div>
+
+    <!-- Mobile Menu Script -->
+    <script>
+        document.getElementById('mobile-menu-button').addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
 </body>
 
 </html>
