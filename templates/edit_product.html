@@ -4,112 +4,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Product</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Product Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">Product Management</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Store</a></li>
-                    {% if session.user_id %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
-                    {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}">Register</a></li>
-                    {% endif %}
-                </ul>
+<body class="bg-gray-100">
+    <nav class="bg-red-600 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="/static/images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg" alt="Logo" class="h-10 mr-4">
+                <a href="/" class="text-white text-2xl font-bold">Product Management</a>
+            </div>
+            <div class="space-x-4">
+                <a href="/" class="text-white hover:text-gray-200">Home</a>
+                <a href="/store" class="text-white hover:text-gray-200">Store</a>
+                {% if session.user_id %}
+                <a href="/logout" class="text-white hover:text-gray-200">Logout</a>
+                {% else %}
+                <a href="/login" class="text-white hover:text-gray-200">Login</a>
+                <a href="/register" class="text-white hover:text-gray-200">Register</a>
+                {% endif %}
             </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
-        <h1>Edit Product</h1>
-        <form method="POST" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label for="category" class="form-label">Category</label>
-                <input type="text" id="category" name="category" value="{{ product.category }}" class="form-control">
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">Edit Product</h1>
+        <form action="/edit/{{ product.id }}" method="POST" enctype="multipart/form-data">
+            <div class="mb-4">
+                <label for="category" class="block text-gray-700">Category</label>
+                <input type="text" id="category" name="category" value="{{ product.category }}"
+                    class="w-full p-2 border rounded">
             </div>
-            <div class="mb-3">
-                <label for="product_name" class="form-label">Product Name</label>
+            <div class="mb-4">
+                <label for="product_name" class="block text-gray-700">Product Name</label>
                 <input type="text" id="product_name" name="product_name" value="{{ product.product_name }}"
-                    class="form-control">
+                    class="w-full p-2 border rounded">
             </div>
-            <div class="mb-3">
-                <label for="brand" class="form-label">Brand</label>
-                <input type="text" id="brand" name="brand" value="{{ product.brand if product.brand else '' }}"
-                    class="form-control">
+            <div class="mb-4">
+                <label for="brand" class="block text-gray-700">Brand</label>
+                <input type="text" id="brand" name="brand" value="{{ product.brand }}"
+                    class="w-full p-2 border rounded">
             </div>
-            <div class="mb-3">
-                <label for="short_description" class="form-label">Short Description</label>
+            <div class="mb-4">
+                <label for="short_description" class="block text-gray-700">Short Description</label>
                 <textarea id="short_description" name="short_description"
-                    class="form-control">{{ product.short_description }}</textarea>
+                    class="w-full p-2 border rounded">{{ product.short_description }}</textarea>
             </div>
-            <div class="mb-3">
-                <label for="long_description" class="form-label">Long Description</label>
+            <div class="mb-4">
+                <label for="long_description" class="block text-gray-700">Long Description</label>
                 <textarea id="long_description" name="long_description"
-                    class="form-control">{{ product.long_description }}</textarea>
+                    class="w-full p-2 border rounded">{{ product.long_description }}</textarea>
             </div>
-            <div class="mb-3">
-                <label for="detailed_description" class="form-label">Detailed Description</label>
+            <div class="mb-4">
+                <label for="detailed_description" class="block text-gray-700">Detailed Description</label>
                 <textarea id="detailed_description" name="detailed_description"
-                    class="form-control">{{ product.detailed_description }}</textarea>
+                    class="w-full p-2 border rounded">{{ product.detailed_description }}</textarea>
             </div>
-            <div class="mb-3">
-                <label for="mrp" class="form-label">MRP</label>
-                <input type="number" step="0.01" id="mrp" name="mrp" value="{{ product.mrp }}" class="form-control">
+            <div class="mb-4">
+                <label for="mrp" class="block text-gray-700">MRP</label>
+                <input type="number" id="mrp" name="mrp" value="{{ product.mrp }}" step="0.01"
+                    class="w-full p-2 border rounded">
             </div>
-            <div class="mb-3">
-                <label for="offer_price" class="form-label">Offer Price</label>
-                <input type="number" step="0.01" id="offer_price" name="offer_price" value="{{ product.offer_price }}"
-                    class="form-control">
+            <div class="mb-4">
+                <label for="offer_price" class="block text-gray-700">Offer Price</label>
+                <input type="number" id="offer_price" name="offer_price" value="{{ product.offer_price }}" step="0.01"
+                    class="w-full p-2 border rounded">
             </div>
-            <div class="mb-3">
-                <label for="sku" class="form-label">SKU#</label>
-                <input type="text" id="sku" name="sku" value="{{ product.sku }}" class="form-control">
+            <div class="mb-4">
+                <label for="sku" class="block text-gray-700">SKU#</label>
+                <input type="text" id="sku" name="sku" value="{{ product.sku }}" class="w-full p-2 border rounded">
             </div>
-            <div class="mb-3">
-                <label for="in_stock" class="form-label">In Stock</label>
-                <input type="checkbox" id="in_stock" name="in_stock" class="form-check-input" {% if product.in_stock
-                    %}checked{% endif %}>
+            <div class="mb-4">
+                <label for="in_stock" class="block text-gray-700">In Stock</label>
+                <input type="checkbox" id="in_stock" name="in_stock" {% if product.in_stock %}checked{% endif %}>
             </div>
-            <div class="mb-3">
-                <label for="stock_number" class="form-label">Stock Number</label>
+            <div class="mb-4">
+                <label for="stock_number" class="block text-gray-700">Stock Number</label>
                 <input type="number" id="stock_number" name="stock_number" value="{{ product.stock_number }}"
-                    class="form-control">
+                    class="w-full p-2 border rounded">
             </div>
-            <div class="mb-3">
-                <label for="show_in_store" class="form-label">Show in Store</label>
-                <input type="checkbox" id="show_in_store" name="show_in_store" class="form-check-input" {% if
-                    product.show_in_store %}checked{% endif %}>
+            <div class="mb-4">
+                <label for="show_in_store" class="block text-gray-700">Show in Store</label>
+                <input type="checkbox" id="show_in_store" name="show_in_store" {% if product.show_in_store %}checked{%
+                    endif %}>
             </div>
-            <div class="mb-3">
-                <label>Product Images (Existing: {{ product.product_image_urls.split(',')|length if
-                    product.product_image_urls else 0 }})</label>
-                <div id="image-list" class="image-list d-flex flex-wrap">
-                    {% for image_url in product.product_image_urls.split(',') %}
-                    <div class="image-item m-2" data-url="{{ image_url }}">
-                        <img src="{{ image_url }}" alt="Product Image" style="max-width: 100px;">
-                        <button type="button" class="btn btn-danger btn-sm delete-image"
-                            data-url="{{ image_url }}">Delete</button>
-                    </div>
-                    {% endfor %}
+            <div class="mb-4">
+                <label class="block text-gray-700">Product Images (Existing: {{
+                    product.product_image_urls.split(',')|length if product.product_image_urls else 0 }})</label>
+                {% for image_url in product.product_image_urls.split(',') %}
+                <div class="mb-2">
+                    <img src="{{ image_url }}" alt="Product Image" class="w-32 h-32 object-cover">
+                    <a href="/delete-image/{{ product.id }}/{{ image_url }}" class="text-red-500">Delete</a>
                 </div>
-                <input type="file" name="images" multiple accept="image/*" class="form-control">
-                <input type="text" name="base64_images[]" class="form-control mt-2"
-                    placeholder="Paste Base64 image data">
-                <input type="hidden" name="image_order[]" id="image-order">
-                <input type="hidden" name="delete_images[]" id="delete-images">
+                {% endfor %}
+                <input type="file" name="images" multiple accept="image/*">
             </div>
-            <div class="mb-3">
-                <label for="pdfs" class="form-label">PDF Files (Existing: {{ product.download_pdfs.split(',')|length if
+            <div class="mb-4">
+                <label class="block text-gray-700">PDF Files (Existing: {{ product.download_pdfs.split(',')|length if
                     product.download_pdfs else 0 }})</label>
                 {% if product.download_pdfs %}
                 <ul>
@@ -118,10 +110,10 @@
                     {% endfor %}
                 </ul>
                 {% endif %}
-                <input type="file" name="pdfs" multiple accept=".pdf" class="form-control">
+                <input type="file" name="pdfs" multiple accept=".pdf">
             </div>
-            <div class="mb-3">
-                <label for="media_files" class="form-label">Additional Media (Existing: {{
+            <div class="mb-4">
+                <label class="block text-gray-700">Additional Media (Existing: {{
                     product.additional_media_urls.split(',')|length if product.additional_media_urls else 0 }})</label>
                 {% if product.additional_media_urls %}
                 <ul>
@@ -130,120 +122,94 @@
                     {% endfor %}
                 </ul>
                 {% endif %}
-                <input type="file" name="media_files" multiple accept="video/*" class="form-control">
+                <input type="file" name="additional_media" multiple accept="video/*">
             </div>
-            <div class="mb-3">
-                <label for="youtube_links" class="form-label">YouTube Links (comma-separated)</label>
+            <div class="mb-4">
+                <label for="youtube_links" class="block text-gray-700">YouTube Links (comma-separated)</label>
                 <input type="text" id="youtube_links" name="youtube_links" value="{{ product.youtube_links }}"
-                    class="form-control">
+                    class="w-full p-2 border rounded">
             </div>
-            <div class="mb-3">
-                <label for="technical_information" class="form-label">Technical Information (table format, e.g., | Key |
-                    Value |)</label>
+            <div class="mb-4">
+                <label for="technical_information" class="block text-gray-700">Technical Information (table format,
+                    e.g., | Key | Value |)</label>
                 <textarea id="technical_information" name="technical_information"
-                    class="form-control">{{ product.technical_information }}</textarea>
+                    class="w-full p-2 border rounded">{{ product.technical_information }}</textarea>
             </div>
-            <div class="mb-3">
-                <label for="manufacturer" class="form-label">Manufacturer</label>
+            <div class="mb-4">
+                <label for="manufacturer" class="block text-gray-700">Manufacturer</label>
                 <input type="text" id="manufacturer" name="manufacturer" value="{{ product.manufacturer }}"
-                    class="form-control">
+                    class="w-full p-2 border rounded">
             </div>
-            <div class="mb-3">
-                <label for="special_note" class="form-label">Special Note</label>
+            <div class="mb-4">
+                <label for="special_note" class="block text-gray-700">Special Note</label>
                 <textarea id="special_note" name="special_note"
-                    class="form-control">{{ product.special_note }}</textarea>
+                    class="w-full p-2 border rounded">{{ product.special_note }}</textarea>
             </div>
-            <div class="mb-3">
-                <label for="whatsapp_number" class="form-label">WhatsApp Number</label>
+            <div class="mb-4">
+                <label for="whatsapp_number" class="block text-gray-700">WhatsApp Number</label>
                 <input type="text" id="whatsapp_number" name="whatsapp_number" value="{{ product.whatsapp_number }}"
-                    class="form-control">
+                    class="w-full p-2 border rounded">
             </div>
-            <div class="mb-3">
-                <label for="is_rubber" class="form-label">Is Rubber Product</label>
-                <input type="checkbox" id="is_rubber" name="is_rubber" class="form-check-input" {% if product.is_rubber
-                    %}checked{% endif %}>
+            <div class="mb-4">
+                <label for="is_rubber" class="block text-gray-700">Is Rubber Product</label>
+                <input type="checkbox" id="is_rubber" name="is_rubber" {% if product.is_rubber %}checked{% endif %}>
             </div>
-            <div class="mb-3">
-                <label for="rubber_density" class="form-label">Rubber Density</label>
-
-                <input type="number" step="0.01" id="rubber_density" name="rubber_density"
-                    value="{{ product.rubber_density if product.rubber_density else '' }}" class="form-control">
-                <label for="rubber_height" class="form-label">Rubber Height</label>
-                <input type="number" step="0.01" id="rubber_height" name="rubber_height"
-                    value="{{ product.rubber_height if product.rubber_height else '' }}" class="form-control">
-                <label for="rubber_length" class="form-label">Rubber Length</label>
-                <input type="number" step="0.01" id="rubber_length" name="rubber_length"
-                    value="{{ product.rubber_length if product.rubber_length else '' }}" class="form-control">
-                <label for="rubber_thickness" class="form-label">Rubber Thickness</label>
-                <input type="number" step="0.01" id="rubber_thickness" name="rubber_thickness"
-                    value="{{ product.rubber_thickness if product.rubber_thickness else '' }}" class="form-control">
-                <label for="rubber_description" class="form-label">Rubber Description</label>
+            <div class="mb-4">
+                <label for="rubber_density" class="block text-gray-700">Rubber Density</label>
+                <input type="number" id="rubber_density" name="rubber_density"
+                    value="{{ product.rubber_density if product.rubber_density else '' }}" step="0.01"
+                    class="w-full p-2 border rounded">
+                <label for="rubber_height" class="block text-gray-700">Rubber Height</label>
+                <input type="number" id="rubber_height" name="rubber_height"
+                    value="{{ product.rubber_height if product.rubber_height else '' }}" step="0.01"
+                    class="w-full p-2 border rounded">
+                <label for="rubber_length" class="block text-gray-700">Rubber Length</label>
+                <input type="number" id="rubber_length" name="rubber_length"
+                    value="{{ product.rubber_length if product.rubber_length else '' }}" step="0.01"
+                    class="w-full p-2 border rounded">
+                <label for="rubber_thickness" class="block text-gray-700">Rubber Thickness</label>
+                <input type="number" id="rubber_thickness" name="rubber_thickness"
+                    value="{{ product.rubber_thickness if product.rubber_thickness else '' }}" step="0.01"
+                    class="w-full p-2 border rounded">
+                <label for="rubber_description" class="block text-gray-700">Rubber Description</label>
                 <textarea id="rubber_description" name="rubber_description"
-                    class="form-control">{{ product.rubber_description if product.rubber_description else '' }}</textarea>
+                    class="w-full p-2 border rounded">{{ product.rubber_description if product.rubber_description else '' }}</textarea>
             </div>
-            <div class="mb-3">
-                <label>Variants</label>
-                <div id="variant-list">
-                    {% for variant in product.variants %}
-                    <div class="variant-item">
-                        <input type="hidden" name="variant_id[]" value="{{ variant.id }}">
-                        <input type="text" name="variant_name[]" value="{{ variant.variant_name }}"
-                            class="form-control mb-2">
-                        <input type="number" step="0.01" name="variant_price[]" value="{{ variant.variant_price }}"
-                            class="form-control mb-2">
-                        <button type="button" class="btn btn-danger btn-sm remove-variant">Remove</button>
-                    </div>
-                    {% endfor %}
-                    <div class="variant-item">
-                        <input type="text" name="variant_name[]" class="form-control mb-2" placeholder="Variant Name">
-                        <input type="number" step="0.01" name="variant_price[]" class="form-control mb-2"
-                            placeholder="Variant Price">
-                    </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Variants</label>
+                {% for variant in product.variants %}
+                <div class="flex mb-2">
+                    <input type="hidden" name="variant_ids" value="{{ variant.id }}">
+                    <input type="text" name="variant_names" value="{{ variant.variant_name }}"
+                        class="w-1/2 p-2 border rounded mr-2">
+                    <input type="number" name="variant_prices" value="{{ variant.variant_price }}" step="0.01"
+                        class="w-1/2 p-2 border rounded mr-2">
+                    <a href="/delete-variant/{{ product.id }}/{{ variant.id }}" class="text-red-500">Remove</a>
                 </div>
-                <button type="button" id="add-variant" class="btn btn-secondary mt-2">Add Another Variant</button>
+                {% endfor %}
+                <div class="flex mb-2">
+                    <input type="text" name="variant_names" placeholder="Variant Name"
+                        class="w-1/2 p-2 border rounded mr-2">
+                    <input type="number" name="variant_prices" placeholder="Variant Price" step="0.01"
+                        class="w-1/2 p-2 border rounded">
+                </div>
+                <button type="button" onclick="addVariantField()" class="text-blue-500">Add Another Variant</button>
             </div>
-            <button type="submit" class="btn btn-primary">Update Product</button>
-            <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="bg-blue-500 text-white p-2 rounded">Update Product</button>
+            <a href="/" class="bg-gray-500 text-white p-2 rounded">Cancel</a>
         </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
-        const imageList = document.getElementById('image-list');
-        Sortable.create(imageList, {
-            animation: 150,
-            onEnd: function () {
-                const order = Array.from(imageList.children).map(item => item.dataset.url);
-                document.getElementById('image-order').value = order.join(',');
-            }
-        });
-
-        document.querySelectorAll('.delete-image').forEach(button => {
-            button.addEventListener('click', function () {
-                const url = this.dataset.url;
-                let deleteImages = document.getElementById('delete-images').value;
-                document.getElementById('delete-images').value = deleteImages ? deleteImages + ',' + url : url;
-                this.parentElement.remove();
-            });
-        });
-
-        document.getElementById('add-variant').addEventListener('click', function () {
-            const variantList = document.getElementById('variant-list');
-            const variantItem = document.createElement('div');
-            variantItem.className = 'variant-item';
-            variantItem.innerHTML = `
-                <input type="text" name="variant_name[]" class="form-control mb-2" placeholder="Variant Name">
-                <input type="number" step="0.01" name="variant_price[]" class="form-control mb-2" placeholder="Variant Price">
+        function addVariantField() {
+            const variantDiv = document.createElement('div');
+            variantDiv.className = 'flex mb-2';
+            variantDiv.innerHTML = `
+                <input type="text" name="variant_names" placeholder="Variant Name" class="w-1/2 p-2 border rounded mr-2">
+                <input type="number" name="variant_prices" placeholder="Variant Price" step="0.01" class="w-1/2 p-2 border rounded">
             `;
-            variantList.appendChild(variantItem);
-        });
-
-        document.querySelectorAll('.remove-variant').forEach(button => {
-            button.addEventListener('click', function () {
-                this.parentElement.remove();
-            });
-        });
+            document.querySelector('form').insertBefore(variantDiv, document.querySelector('button[onclick="addVariantField()"]'));
+        }
     </script>
 </body>
 
