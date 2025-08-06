@@ -4,104 +4,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Product Management</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
-<body class="bg-gray-100 font-sans">
-    <!-- Navbar -->
-    <nav class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <img src="/static/images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg" alt="Product Management Logo" class="h-10 w-auto">
-                    <span class="ml-3 text-xl font-semibold text-gray-800">Product Management</span>
-                </div>
-                <div class="flex items-center">
-                    <!-- Mobile menu button -->
-                    <button id="mobile-menu-button"
-                        class="md:hidden text-gray-600 hover:text-gray-800 focus:outline-none">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16m-7 6h7" />
-                        </svg>
-                    </button>
-                    <!-- Desktop menu -->
-                    <div class="hidden md:flex space-x-4">
-                        <a href="{{ url_for('index') }}"
-                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Home</a>
-                        <a href="#"
-                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Store</a>
-                        {% if session.user_id %}
-                        <a href="{{ url_for('logout') }}"
-                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Logout</a>
-                        {% else %}
-                        <a href="{{ url_for('login') }}"
-                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Login</a>
-                        <a href="{{ url_for('register') }}"
-                            class="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-sm font-medium">Register</a>
-                        {% endif %}
-                    </div>
+<body class="bg-gray-100">
+    <nav class="bg-white p-4 shadow">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <!-- Logo and Navigation Links -->
+            <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6">
+                <img src="{{ url_for('static', filename='images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg') }}"
+                    alt="Logo" class="h-8 sm:h-10 w-auto">
+                <div class="flex space-x-4">
+                    <a href="{{ url_for('index') }}"
+                        class="text-gray-800 font-semibold hover:text-blue-600 text-sm sm:text-base">Home</a>
+                    <a href="{{ url_for('index') }}"
+                        class="text-gray-800 font-semibold hover:text-blue-600 text-sm sm:text-base">Store</a>
                 </div>
             </div>
-            <!-- Mobile menu -->
-            <div id="mobile-menu" class="hidden md:hidden bg-white shadow-md">
-                <div class="px-2 pt-2 pb-3 space-y-1">
-                    <a href="{{ url_for('index') }}"
-                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Home</a>
-                    <a href="#"
-                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Store</a>
-                    {% if session.user_id %}
-                    <a href="{{ url_for('logout') }}"
-                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Logout</a>
-                    {% else %}
-                    <a href="{{ url_for('login') }}"
-                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Login</a>
-                    <a href="{{ url_for('register') }}"
-                        class="block text-gray-600 hover:text-gray-800 px-3 py-2 rounded-md text-base font-medium">Register</a>
-                    {% endif %}
-                </div>
+            <!-- Auth Links -->
+            <div class="flex space-x-4">
+                <a href="{{ url_for('login') }}"
+                    class="text-gray-800 font-semibold hover:text-blue-600 text-sm sm:text-base">Login</a>
+                <a href="{{ url_for('register') }}"
+                    class="text-gray-800 font-semibold hover:text-green-600 text-sm sm:text-base">Register</a>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <div class="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">Register</h1>
+    <div class="container mx-auto mt-4 sm:mt-8 p-4">
+        <h1 class="text-xl sm:text-2xl font-bold mb-4 text-center sm:text-left">Register</h1>
 
-        {% if error %}
-        <div class="bg-red-100 text-red-700 p-4 rounded-md mb-6">
-            {{ error }}
-        </div>
-        {% endif %}
-
-        <form method="POST" class="bg-white p-6 rounded-md shadow-md">
+        <form method="POST" class="bg-white p-4 sm:p-6 rounded shadow-md max-w-md mx-auto sm:max-w-none">
+            {% if error %}
+            <p class="text-red-600 mb-4 text-sm sm:text-base">{{ error }}</p>
+            {% endif %}
             <div class="mb-4">
                 <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-                <input type="text" name="username" id="username" required
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <input type="text" id="username" name="username"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 sm:p-3 text-sm sm:text-base"
+                    required>
             </div>
+
             <div class="mb-4">
                 <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" name="password" id="password" required
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <input type="password" id="password" name="password"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 sm:p-3 text-sm sm:text-base"
+                    required>
             </div>
-            <button type="submit"
-                class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Register</button>
+
+            <div class="flex flex-col sm:flex-row justify-between space-y-2 sm:space-y-0 sm:space-x-4">
+                <button type="submit"
+                    class="bg-blue-600 text-white px-4 py-2 rounded text-sm sm:text-base w-full sm:w-auto">Register</button>
+                <a href="{{ url_for('login') }}"
+                    class="bg-gray-600 text-white px-4 py-2 rounded text-center text-sm sm:text-base w-full sm:w-auto">Cancel</a>
+            </div>
         </form>
-
-        <p class="mt-4 text-center text-sm text-gray-600">
-            Already have an account? <a href="{{ url_for('login') }}" class="text-blue-600 hover:underline">Login</a>
-        </p>
     </div>
-
-    <!-- Mobile Menu Script -->
-    <script>
-        document.getElementById('mobile-menu-button').addEventListener('click', () => {
-            const mobileMenu = document.getElementById('mobile-menu');
-            mobileMenu.classList.toggle('hidden');
-        });
-    </script>
 </body>
 
 </html>
