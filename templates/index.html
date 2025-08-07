@@ -10,13 +10,14 @@
         .carousel {
             position: relative;
             width: 100%;
-            max-height: 300px;
+            height: 300px;
             overflow: hidden;
         }
 
         .carousel img {
             width: 100%;
-            height: auto;
+            height: 300px;
+            object-fit: cover;
             display: none;
         }
 
@@ -40,6 +41,17 @@
 
         .carousel-button.next {
             right: 10px;
+        }
+
+        .no-images {
+            width: 100%;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f7f7f7;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
         }
     </style>
     <script>
@@ -204,8 +216,8 @@
                     {% endif %}
                 </div>
                 {% else %}
-                <div class="text-center text-gray-500">
-                    No images available
+                <div class="no-images">
+                    <span class="text-gray-500">No images available</span>
                 </div>
                 {% endif %}
                 <h2 class="text-xl font-bold mt-4">{{ product.product_name }}</h2>
@@ -241,9 +253,7 @@
                             <li>Thickness: {{ product.rubber_thickness }}</li>
                             {% endif %}
                         </ul>
-                        {% if product.rubber_description %}
                         <p>{{ product.rubber_description }}</p>
-                        {% endif %}
                     </div>
                     {% endif %}
                     {% if product.youtube_links %}
