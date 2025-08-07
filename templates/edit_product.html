@@ -5,220 +5,354 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Product</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
-    <script>
-        function toggleRubberFields() {
-            const isRubber = document.getElementById('is_rubber').checked;
-            const rubberFields = document.getElementById('rubber_fields');
-            rubberFields.style.display = isRubber ? 'block' : 'none';
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        #image-dropzone {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
         }
+
+        #image-dropzone.dragover {
+            background: #e2e8f0;
+        }
+
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .image-preview img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            cursor: move;
+            border: 2px solid transparent;
+        }
+
+        .image-preview img.dragging {
+            opacity: 0.5;
+            border: 2px dashed #3b82f6;
+        }
+
+        .variant-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.target.classList.add('dragover');
+            console.log('Drag over dropzone');
+        }
+
+        function handleDragLeave(e) {
+            e.target.classList.remove('dragover');
+            console.log('Drag left dropzone');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            console.log('Dropped files:', files);
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            const imageInput = document.querySelector('input[name="images"]');
+            const dataTransfer = new DataTransfer();
+            if (imageInput.files) {
+                for (let file of imageInput.files) {
+                    dataTransfer.items.add(file);
+                }
+            }
+            for (let file of files) {
+                if (file.type.startsWith('image/')) {
+                    dataTransfer.items.add(file);
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.dataset.filename = file.name;
+                    img.draggable = true;
+                    img.ondragstart = dragStart;
+                    img.ondragend = dragEnd;
+                    document.getElementById('image-preview').appendChild(img);
+                    console.log('Added new image:', file.name);
+                }
+            }
+            imageInput.files = dataTransfer.files;
+            updateImageOrder();
+        }
+
+        function dragStart(e) {
+            e.target.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', e.target.src);
+            e.dataTransfer.setData('filename', e.target.dataset.filename);
+            console.log('Dragging image:', e.target.dataset.filename);
+        }
+
+        function dragEnd(e) {
+            e.target.classList.remove('dragging');
+            console.log('Drag ended for image:', e.target.dataset.filename);
+        }
+
+        function handleImageDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleImageDrop(e) {
+            e.preventDefault();
+            const draggedSrc = e.dataTransfer.getData('text/plain');
+            const draggedFilename = e.dataTransfer.getData('filename');
+            const target = e.target.closest('img');
+            if (target && draggedSrc !== target.src) {
+                const images = Array.from(document.querySelectorAll('#image-preview img'));
+                const draggedIndex = images.findIndex(img => img.src === draggedSrc);
+                const targetIndex = images.findIndex(img => img.src === target.src);
+                const container = document.getElementById('image-preview');
+                if (draggedIndex < targetIndex) {
+                    container.insertBefore(images[draggedIndex], images[targetIndex].nextSibling);
+                } else {
+                    container.insertBefore(images[draggedIndex], images[targetIndex]);
+                }
+                console.log('Reordered image:', draggedFilename);
+                updateImageOrder();
+            }
+        }
+
+        function updateImageOrder() {
+            const images = document.querySelectorAll('#image-preview img');
+            const filenames = Array.from(images).map(img => img.dataset.filename);
+            document.getElementById('image-order').value = filenames.join(',');
+            console.log('Updated image order:', filenames);
+        }
+
+        function addVariant(name = '', price = '') {
+            const container = document.getElementById('variant-container');
+            const div = document.createElement('div');
+            div.className = 'variant-row';
+            div.innerHTML = `
+                <input type="text" name="variant_name[]" class="w-1/2 border rounded p-2" placeholder="Variant Name" value="${name}">
+                <input type="number" name="variant_price[]" class="w-1/2 border rounded p-2" placeholder="Variant Price" step="0.01" value="${price}">
+                <button type="button" onclick="this.parentElement.remove(); console.log('Removed variant')" class="bg-red-600 text-white px-2 py-1 rounded">Remove</button>
+            `;
+            container.appendChild(div);
+            console.log('Added variant:', name, price);
+        }
+
         window.onload = function () {
-            toggleRubberFields(); // Set initial state based on is_rubber
+            const dropzone = document.getElementById('image-dropzone');
+            dropzone.addEventListener('dragover', handleDragOver);
+            dropzone.addEventListener('dragleave', handleDragLeave);
+            dropzone.addEventListener('drop', handleDrop);
+            dropzone.addEventListener('click', () => document.querySelector('input[name="images"]').click());
+            document.querySelector('input[name="images"]').addEventListener('change', function (e) {
+                console.log('Selected files via input:', e.target.files);
+                handleFiles(e.target.files);
+            });
+            document.getElementById('image-preview').addEventListener('dragover', handleImageDragOver);
+            document.getElementById('image-preview').addEventListener('drop', handleImageDrop);
+            document.querySelectorAll('#image-preview img').forEach(img => {
+                img.dataset.filename = img.src.split('/').pop();
+                img.draggable = true;
+                img.ondragstart = dragStart;
+                img.ondragend = dragEnd;
+            });
+            updateImageOrder();
         };
     </script>
 </head>
 
 <body class="bg-gray-100">
-    <nav class="bg-white text-gray-800 shadow p-4">
-        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-            <!-- Logo + Navigation Links -->
-            <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6">
-                <img src="{{ url_for('static', filename='images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg') }}"
-                    alt="Logo" class="h-8 sm:h-10 w-auto">
-                <div class="flex space-x-4">
-                    <a href="/" class="hover:text-blue-600 font-semibold text-sm sm:text-base">Home</a>
-                    <a href="/store" class="hover:text-blue-600 font-semibold text-sm sm:text-base">Store</a>
+    <nav class="bg-white text-blue-600 p-4 shadow">
+        <div class="container mx-auto flex justify-between items-center">
+            <!-- Left: Logo and Links -->
+            <div class="flex items-center space-x-6">
+                <!-- Logo -->
+                <a href="/">
+                    <img src="/static/images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg" alt="Logo" class="h-8 w-auto">
+                </a>
+                <!-- Navigation -->
+                <div class="space-x-4">
+                    <a href="/" class="hover:underline">Home</a>
+                    <a href="/store" class="hover:underline">Store</a>
                 </div>
             </div>
-            <!-- Authentication Links -->
-            <div class="flex space-x-4">
+    
+            <!-- Right: Auth Links -->
+            <div class="space-x-4">
                 {% if session.user_id %}
-                <a href="/logout" class="hover:text-red-600 font-semibold text-sm sm:text-base">Logout</a>
+                <a href="/logout" class="hover:underline">Logout</a>
                 {% else %}
-                <a href="/login" class="hover:text-blue-600 font-semibold text-sm sm:text-base">Login</a>
-                <a href="/register" class="hover:text-green-600 font-semibold text-sm sm:text-base">Register</a>
+                <a href="/login" class="hover:underline">Login</a>
+                <a href="/register" class="hover:underline">Register</a>
                 {% endif %}
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto p-4 sm:p-6">
-        <h1 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Edit Product</h1>
-        <form method="POST" enctype="multipart/form-data" class="space-y-3 sm:space-y-4">
-            <div>
-                <label for="category" class="block text-sm sm:text-base">Category</label>
-                <input type="text" id="category" name="category" value="{{ product.category }}"
-                    class="w-full border p-2 sm:p-3 text-sm sm:text-base" required>
-            </div>
-            <div>
-                <label for="product_name" class="block text-sm sm:text-base">Product Name</label>
-                <input type="text" id="product_name" name="product_name" value="{{ product.product_name }}"
-                    class="w-full border p-2 sm:p-3 text-sm sm:text-base" required>
-            </div>
-            <div>
-                <label for="short_description" class="block text-sm sm:text-base">Short Description</label>
-                <textarea id="short_description" name="short_description"
-                    class="w-full border p-2 sm:p-3 text-sm sm:text-base h-20 sm:h-24">{{ product.short_description }}</textarea>
-            </div>
-            <div>
-                <label for="long_description" class="block text-sm sm:text-base">Long Description</label>
-                <textarea id="long_description" name="long_description"
-                    class="w-full border p-2 sm:p-3 text-sm sm:text-base h-24 sm:h-32">{{ product.long_description }}</textarea>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+    <div class="container mx-auto p-6">
+        <h1 class="text-2xl font-bold mb-4">Edit Product</h1>
+        <form method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded shadow">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label for="mrp" class="block text-sm sm:text-base">MRP</label>
-                    <input type="number" id="mrp" name="mrp" step="0.01" value="{{ product.mrp }}"
-                        class="w-full border p-2 sm:p-3 text-sm sm:text-base" required>
+                    <label for="category" class="block text-sm font-medium">Category</label>
+                    <input type="text" id="category" name="category" value="{{ product.category or '' }}"
+                        class="w-full border rounded p-2" required>
                 </div>
                 <div>
-                    <label for="offer_price" class="block text-sm sm:text-base">Offer Price</label>
+                    <label for="product_name" class="block text-sm font-medium">Product Name</label>
+                    <input type="text" id="product_name" name="product_name" value="{{ product.product_name or '' }}"
+                        class="w-full border rounded p-2" required>
+                </div>
+                <div class="col-span-2">
+                    <label for="short_description" class="block text-sm font-medium">Short Description</label>
+                    <textarea id="short_description" name="short_description"
+                        class="w-full border rounded p-2">{{ product.short_description or '' }}</textarea>
+                </div>
+                <div class="col-span-2">
+                    <label for="long_description" class="block text-sm font-medium">Long Description</label>
+                    <textarea id="long_description" name="long_description"
+                        class="w-full border rounded p-2">{{ product.long_description or '' }}</textarea>
+                </div>
+                <div>
+                    <label for="mrp" class="block text-sm font-medium">MRP</label>
+                    <input type="number" id="mrp" name="mrp" step="0.01" value="{{ product.mrp or '' }}"
+                        class="w-full border rounded p-2" required>
+                </div>
+                <div>
+                    <label for="offer_price" class="block text-sm font-medium">Offer Price</label>
                     <input type="number" id="offer_price" name="offer_price" step="0.01"
-                        value="{{ product.offer_price }}" class="w-full border p-2 sm:p-3 text-sm sm:text-base"
-                        required>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                    <label for="sku" class="block text-sm sm:text-base">SKU#</label>
-                    <input type="text" id="sku" name="sku" value="{{ product.sku }}"
-                        class="w-full border p-2 sm:p-3 text-sm sm:text-base" required>
+                        value="{{ product.offer_price or '' }}" class="w-full border rounded p-2" required>
                 </div>
                 <div>
-                    <label for="stock_number" class="block text-sm sm:text-base">Stock Number</label>
-                    <input type="number" id="stock_number" name="stock_number" value="{{ product.stock_number }}"
-                        class="w-full border p-2 sm:p-3 text-sm sm:text-base" required>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <input type="checkbox" id="in_stock" name="in_stock" {% if product.in_stock %}checked{% endif %}
-                    class="w-4 h-4">
-                <label for="in_stock" class="text-sm sm:text-base">In Stock</label>
-            </div>
-            <div>
-                <label for="images" class="block text-sm sm:text-base">Product Images (Existing: {{
-                    product.product_image_urls.split(',')|length if product.product_image_urls else 0 }})</label>
-                {% if product.product_image_urls %}
-                <div class="flex flex-wrap gap-2 mb-2">
-                    {% for image_url in product.product_image_urls.split(',') %}
-                    <img src="{{ url_for('serve_uploaded_file', filename=image_url.split('/')[-1]) }}"
-                        alt="Product Image" class="w-16 h-16 sm:w-24 sm:h-24 object-cover">
-                    {% endfor %}
-                </div>
-                <p class="text-xs sm:text-sm text-gray-600">Select multiple images to add (existing images will be
-                    retained)</p>
-                {% else %}
-                <p class="text-xs sm:text-sm text-gray-600">No existing images</p>
-                {% endif %}
-                <input type="file" id="images" name="images" multiple accept="image/*"
-                    class="w-full border p-2 text-sm sm:text-base">
-            </div>
-            <div>
-                <label for="pdfs" class="block text-sm sm:text-base">PDF Files (Existing: {{
-                    product.download_pdfs.split(',')|length if
-                    product.download_pdfs else 0 }})</label>
-                {% if product.download_pdfs %}
-                <div class="flex flex-col space-y-1 sm:space-y-2 mb-2">
-                    {% for pdf in product.download_pdfs.split(',') %}
-                    <a href="{{ url_for('serve_uploaded_file', filename=pdf.split('/')[-1]) }}" target="_blank"
-                        class="text-blue-600 text-sm sm:text-base">Download PDF</a>
-                    {% endfor %}
-                </div>
-                {% endif %}
-                <input type="file" id="pdfs" name="pdfs" multiple accept=".pdf"
-                    class="w-full border p-2 text-sm sm:text-base">
-            </div>
-            <div>
-                <label for="youtube_links" class="block text-sm sm:text-base">YouTube Links (comma-separated)</label>
-                <input type="text" id="youtube_links" name="youtube_links" value="{{ product.youtube_links }}"
-                    class="w-full border p-2 sm:p-3 text-sm sm:text-base">
-            </div>
-            <div>
-                <label for="technical_information" class="block text-sm sm:text-base">Technical Information (table
-                    format, e.g., | Key |
-                    Value |)</label>
-                <textarea id="technical_information" name="technical_information"
-                    class="w-full border p-2 sm:p-3 text-sm sm:text-base h-20 sm:h-24">{{ product.technical_information }}</textarea>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                    <label for="manufacturer" class="block text-sm sm:text-base">Manufacturer</label>
-                    <input type="text" id="manufacturer" name="manufacturer" value="{{ product.manufacturer }}"
-                        class="w-full border p-2 sm:p-3 text-sm sm:text-base">
+                    <label for="sku" class="block text-sm font-medium">SKU#</label>
+                    <input type="text" id="sku" name="sku" value="{{ product.sku or '' }}"
+                        class="w-full border rounded p-2" required>
                 </div>
                 <div>
-                    <label for="whatsapp_number" class="block text-sm sm:text-base">WhatsApp Number</label>
-                    <input type="text" id="whatsapp_number" name="whatsapp_number" value="{{ product.whatsapp_number }}"
-                        class="w-full border p-2 sm:p-3 text-sm sm:text-base">
+                    <label for="stock_number" class="block text-sm font-medium">Stock Number</label>
+                    <input type="number" id="stock_number" name="stock_number" value="{{ product.stock_number or '' }}"
+                        class="w-full border rounded p-2" required>
                 </div>
-            </div>
-            <div>
-                <label for="special_note" class="block text-sm sm:text-base">Special Note</label>
-                <textarea id="special_note" name="special_note"
-                    class="w-full border p-2 sm:p-3 text-sm sm:text-base h-20 sm:h-24">{{ product.special_note }}</textarea>
-            </div>
-            <div class="flex items-center space-x-2">
-                <input type="checkbox" id="is_rubber" name="is_rubber" {% if product.is_rubber %}checked{% endif %}
-                    onchange="toggleRubberFields()" class="w-4 h-4">
-                <label for="is_rubber" class="text-sm sm:text-base">Is Rubber Product</label>
-            </div>
-            <div id="rubber_fields" style="display: none;" class="space-y-3 sm:space-y-4 border-t pt-4">
-                <h3 class="text-base sm:text-lg font-semibold">Rubber Product Details</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                        <label for="rubber_density" class="block text-sm sm:text-base">Rubber Density</label>
-                        <input type="number" id="rubber_density" name="rubber_density" step="0.01"
-                            value="{{ product.rubber_density if product.rubber_density else '' }}"
-                            class="w-full border p-2 sm:p-3 text-sm sm:text-base">
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium"><input type="checkbox" name="in_stock" {% if
+                            product.in_stock %}checked{% endif %}> In Stock</label>
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium">Product Images (Existing: {{
+                        product.product_image_urls.split(',')|length if product.product_image_urls else 0 }})</label>
+                    <div class="image-preview" id="image-preview">
+                        {% for image_url in product.product_image_urls.split(',') if product.product_image_urls %}
+                        <img src="{{ url_for('serve_uploaded_file', filename=image_url.split('/')[-1]) }}"
+                            data-filename="{{ image_url.split('/')[-1] }}">
+                        {% endfor %}
                     </div>
-                    <div>
-                        <label for="rubber_height" class="block text-sm sm:text-base">Rubber Height</label>
-                        <input type="number" id="rubber_height" name="rubber_height" step="0.01"
-                            value="{{ product.rubber_height if product.rubber_height else '' }}"
-                            class="w-full border p-2 sm:p-3 text-sm sm:text-base">
+                    <div id="image-dropzone" class="mt-2">Drag and drop images here or click to select</div>
+                    <input type="file" name="images" multiple accept="image/*" class="hidden">
+                    <input type="hidden" id="image-order" name="image_order">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium">PDF Files (Existing: {{
+                        product.download_pdfs.split(',')|length if product.download_pdfs else 0 }})</label>
+                    {% if product.download_pdfs %}
+                    <div class="mt-2">
+                        {% for pdf in product.download_pdfs.split(',') %}
+                        <a href="{{ url_for('serve_uploaded_file', filename=pdf.split('/')[-1]) }}" target="_blank"
+                            class="text-blue-600 hover:underline">Download PDF</a>
+                        {% endfor %}
                     </div>
-                    <div>
-                        <label for="rubber_length" class="block text-sm sm:text-base">Rubber Length</label>
-                        <input type="number" id="rubber_length" name="rubber_length" step="0.01"
-                            value="{{ product.rubber_length if product.rubber_length else '' }}"
-                            class="w-full border p-2 sm:p-3 text-sm sm:text-base">
-                    </div>
-                    <div>
-                        <label for="rubber_thickness" class="block text-sm sm:text-base">Rubber Thickness</label>
-                        <input type="number" id="rubber_thickness" name="rubber_thickness" step="0.01"
-                            value="{{ product.rubber_thickness if product.rubber_thickness else '' }}"
-                            class="w-full border p-2 sm:p-3 text-sm sm:text-base">
-                    </div>
+                    {% endif %}
+                    <input type="file" name="pdfs" multiple accept=".pdf" class="w-full border rounded p-2">
+                </div>
+                <div class="col-span-2">
+                    <label for="youtube_links" class="block text-sm font-medium">YouTube Links (comma-separated)</label>
+                    <input type="text" id="youtube_links" name="youtube_links" value="{{ product.youtube_links or '' }}"
+                        class="w-full border rounded p-2">
+                </div>
+                <div class="col-span-2">
+                    <label for="technical_information" class="block text-sm font-medium">Technical Information (table
+                        format, e.g., | Key | Value |)</label>
+                    <textarea id="technical_information" name="technical_information"
+                        class="w-full border rounded p-2">{{ product.technical_information or '' }}</textarea>
                 </div>
                 <div>
-                    <label for="rubber_description" class="block text-sm sm:text-base">Rubber Description</label>
+                    <label for="manufacturer" class="block text-sm font-medium">Manufacturer</label>
+                    <input type="text" id="manufacturer" name="manufacturer" value="{{ product.manufacturer or '' }}"
+                        class="w-full border rounded p-2">
+                </div>
+                <div>
+                    <label for="whatsapp_number" class="block text-sm font-medium">WhatsApp Number</label>
+                    <input type="text" id="whatsapp_number" name="whatsapp_number"
+                        value="{{ product.whatsapp_number or '' }}" class="w-full border rounded p-2">
+                </div>
+                <div class="col-span-2">
+                    <label for="special_note" class="block text-sm font-medium">Special Note</label>
+                    <textarea id="special_note" name="special_note"
+                        class="w-full border rounded p-2">{{ product.special_note or '' }}</textarea>
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium"><input type="checkbox" name="is_rubber" {% if
+                            product.is_rubber %}checked{% endif %}> Is Rubber Product</label>
+                </div>
+                <div class="col-span-2">
+                    <p class="font-medium">Rubber Product Details</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div>
+                            <label for="rubber_density" class="block text-sm font-medium">Rubber Density</label>
+                            <input type="number" id="rubber_density" name="rubber_density" step="0.01"
+                                value="{{ product.rubber_density or '' }}" class="w-full border rounded p-2">
+                        </div>
+                        <div>
+                            <label for="rubber_height" class="block text-sm font-medium">Rubber Height</label>
+                            <input type="number" id="rubber_height" name="rubber_height" step="0.01"
+                                value="{{ product.rubber_height or '' }}" class="w-full border rounded p-2">
+                        </div>
+                        <div>
+                            <label for="rubber_length" class="block text-sm font-medium">Rubber Length</label>
+                            <input type="number" id="rubber_length" name="rubber_length" step="0.01"
+                                value="{{ product.rubber_length or '' }}" class="w-full border rounded p-2">
+                        </div>
+                        <div>
+                            <label for="rubber_thickness" class="block text-sm font-medium">Rubber Thickness</label>
+                            <input type="number" id="rubber_thickness" name="rubber_thickness" step="0.01"
+                                value="{{ product.rubber_thickness or '' }}" class="w-full border rounded p-2">
+                        </div>
+                    </div>
+                    <label for="rubber_description" class="block text-sm font-medium mt-2">Rubber Description</label>
                     <textarea id="rubber_description" name="rubber_description"
-                        class="w-full border p-2 sm:p-3 text-sm sm:text-base h-20 sm:h-24">{{ product.rubber_description if product.rubber_description else '' }}</textarea>
+                        class="w-full border rounded p-2">{{ product.rubber_description or '' }}</textarea>
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium">Variants</label>
+                    <div id="variant-container"></div>
+                    <button type="button" onclick="addVariant()"
+                        class="bg-blue-600 text-white px-4 py-2 rounded mt-2">Add Variant</button>
                 </div>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                    <label for="variant_name" class="block text-sm sm:text-base">Variant Name</label>
-                    <input type="text" id="variant_name" name="variant_name"
-                        value="{{ product.variant_name if product.variant_name else '' }}"
-                        class="w-full border p-2 sm:p-3 text-sm sm:text-base">
-                </div>
-                <div>
-                    <label for="variant_price" class="block text-sm sm:text-base">Variant Price</label>
-                    <input type="number" id="variant_price" name="variant_price" step="0.01"
-                        value="{{ product.variant_price if product.variant_price else '' }}"
-                        class="w-full border p-2 sm:p-3 text-sm sm:text-base">
-                </div>
-            </div>
-            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 pt-4">
-                <button type="submit"
-                    class="bg-blue-600 text-white px-4 py-2 rounded text-sm sm:text-base w-full sm:w-auto">Update
-                    Product</button>
-                <a href="/"
-                    class="bg-gray-600 text-white px-4 py-2 rounded text-center text-sm sm:text-base w-full sm:w-auto">Cancel</a>
+            <div class="mt-6 flex space-x-4">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Update Product</button>
+                <a href="{{ url_for('index') }}" class="bg-gray-600 text-white px-4 py-2 rounded">Cancel</a>
+                <form action="{{ url_for('delete_product_ui', product_id=product.id) }}" method="POST"
+                    onsubmit="return confirm('Are you sure you want to delete this product?');">
+                    <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded">Delete Product</button>
+                </form>
             </div>
         </form>
     </div>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const variants = {{ product.to_dict().variants | tojson
+        }};
+        variants.forEach(variant => {
+            addVariant(variant.name, variant.price);
+        });
+        console.log('Initialized variants:', variants);
+        });
+    </script>
 </body>
 
 </html>

@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import logging
+import json
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -56,8 +57,7 @@ class Product(db.Model):
     rubber_length = db.Column(db.Float, nullable=True)
     rubber_thickness = db.Column(db.Float, nullable=True)
     rubber_description = db.Column(db.Text, nullable=True)
-    variant_name = db.Column(db.String(50))  # Changed from variant to variant_name
-    variant_price = db.Column(db.Float, nullable=True)  # Added variant_price
+    variants = db.Column(db.Text)  # Store variants as JSON string
 
     def to_dict(self):
         return {
@@ -84,8 +84,7 @@ class Product(db.Model):
             "rubber_length": self.rubber_length,
             "rubber_thickness": self.rubber_thickness,
             "rubber_description": self.rubber_description,
-            "variant_name": self.variant_name,
-            "variant_price": self.variant_price
+            "variants": json.loads(self.variants) if self.variants else []
         }
 
 # Create DB
@@ -147,8 +146,34 @@ def serve_uploaded_file(filename):
 def index():
     page = request.args.get('page', 1, type=int)
     per_page = 10
-    products_pagination = Product.query.paginate(page=page, per_page=per_page, error_out=False)
-    return render_template('index.html', products=products_pagination.items, pagination=products_pagination)
+    query = request.args.get('q', '').lower()
+    category = request.args.get('category', '')
+    in_stock = request.args.get('in_stock', '')
+    min_price = request.args.get('min_price', type=float)
+    max_price = request.args.get('max_price', type=float)
+
+    # Build query with filters
+    product_query = Product.query
+    if query:
+        product_query = product_query.filter(
+            Product.product_name.ilike(f'%{query}%') |
+            Product.category.ilike(f'%{query}%') |
+            Product.short_description.ilike(f'%{query}%') |
+            Product.long_description.ilike(f'%{query}%') |
+            Product.rubber_description.ilike(f'%{query}%')
+        )
+    if category:
+        product_query = product_query.filter(Product.category == category)
+    if in_stock:
+        product_query = product_query.filter(Product.in_stock == (in_stock == 'true'))
+    if min_price is not None:
+        product_query = product_query.filter(Product.offer_price >= min_price)
+    if max_price is not None:
+        product_query = product_query.filter(Product.offer_price <= max_price)
+
+    products_pagination = product_query.paginate(page=page, per_page=per_page, error_out=False)
+    categories = [p.category for p in Product.query.distinct(Product.category)]
+    return render_template('index.html', products=products_pagination.items, pagination=products_pagination, categories=categories)
 
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
@@ -157,6 +182,11 @@ def add_product_ui():
         data = request.form
         images = request.files.getlist('images')
         pdfs = request.files.getlist('pdfs')
+        image_order = data.get('image_order', '').split(',') if data.get('image_order') else []
+
+        app.logger.debug(f"Received form data: {data}")
+        app.logger.debug(f"Received images: {[f.filename for f in images]}")
+        app.logger.debug(f"Received image order: {image_order}")
 
         image_urls = []
         for image in images:
@@ -170,6 +200,17 @@ def add_product_ui():
                 except Exception as e:
                     app.logger.error(f"Error saving image {filename}: {str(e)}")
 
+        # Reorder images based on image_order
+        ordered_urls = []
+        for filename in image_order:
+            for url in image_urls[:]:
+                if filename in url:
+                    ordered_urls.append(url)
+                    image_urls.remove(url)
+                    break
+        image_urls = ordered_urls + image_urls
+        app.logger.debug(f"Final image URLs: {image_urls}")
+
         pdf_urls = []
         for pdf in pdfs:
             if pdf and allowed_file(pdf.filename):
@@ -181,6 +222,18 @@ def add_product_ui():
                     app.logger.debug(f"Saved PDF: {pdf_path}")
                 except Exception as e:
                     app.logger.error(f"Error saving PDF {filename}: {str(e)}")
+
+        # Handle multiple variants
+        variants = []
+        variant_names = data.getlist('variant_name[]')
+        variant_prices = data.getlist('variant_price[]')
+        for name, price in zip(variant_names, variant_prices):
+            if name and price:
+                try:
+                    variants.append({"name": name, "price": float(price)})
+                except ValueError:
+                    app.logger.error(f"Invalid variant price: {price}")
+        app.logger.debug(f"Variants: {variants}")
 
         product = Product(
             category=data.get('category'),
@@ -205,8 +258,7 @@ def add_product_ui():
             rubber_length=float(data.get('rubber_length')) if data.get('rubber_length') else None,
             rubber_thickness=float(data.get('rubber_thickness')) if data.get('rubber_thickness') else None,
             rubber_description=data.get('rubber_description'),
-            variant_name=data.get('variant_name'),
-            variant_price=float(data.get('variant_price')) if data.get('variant_price') else None
+            variants=json.dumps(variants) if variants else None
         )
         db.session.add(product)
         db.session.commit()
@@ -223,6 +275,11 @@ def edit_product_ui(product_id):
         data = request.form
         images = request.files.getlist('images')
         pdfs = request.files.getlist('pdfs')
+        image_order = data.get('image_order', '').split(',') if data.get('image_order') else []
+
+        app.logger.debug(f"Received form data: {data}")
+        app.logger.debug(f"Received images: {[f.filename for f in images]}")
+        app.logger.debug(f"Received image order: {image_order}")
 
         image_urls = product.product_image_urls.split(",") if product.product_image_urls else []
         for image in images:
@@ -236,6 +293,17 @@ def edit_product_ui(product_id):
                 except Exception as e:
                     app.logger.error(f"Error saving image {filename}: {str(e)}")
 
+        # Reorder images based on image_order
+        ordered_urls = []
+        for filename in image_order:
+            for url in image_urls[:]:
+                if filename in url:
+                    ordered_urls.append(url)
+                    image_urls.remove(url)
+                    break
+        image_urls = ordered_urls + image_urls
+        app.logger.debug(f"Final image URLs: {image_urls}")
+
         pdf_urls = product.download_pdfs.split(",") if product.download_pdfs else []
         for pdf in pdfs:
             if pdf and allowed_file(pdf.filename):
@@ -247,6 +315,18 @@ def edit_product_ui(product_id):
                     app.logger.debug(f"Saved PDF: {pdf_path}")
                 except Exception as e:
                     app.logger.error(f"Error saving PDF {filename}: {str(e)}")
+
+        # Handle multiple variants
+        variants = []
+        variant_names = data.getlist('variant_name[]')
+        variant_prices = data.getlist('variant_price[]')
+        for name, price in zip(variant_names, variant_prices):
+            if name and price:
+                try:
+                    variants.append({"name": name, "price": float(price)})
+                except ValueError:
+                    app.logger.error(f"Invalid variant price: {price}")
+        app.logger.debug(f"Variants: {variants}")
 
         product.category = data.get('category', product.category)
         product.product_name = data.get('product_name', product.product_name)
@@ -270,8 +350,7 @@ def edit_product_ui(product_id):
         product.rubber_length = float(data.get('rubber_length')) if data.get('rubber_length') else None
         product.rubber_thickness = float(data.get('rubber_thickness')) if data.get('rubber_thickness') else None
         product.rubber_description = data.get('rubber_description', product.rubber_description)
-        product.variant_name = data.get('variant_name', product.variant_name)
-        product.variant_price = float(data.get('variant_price')) if data.get('variant_price') else product.variant_price
+        product.variants = json.dumps(variants) if variants else product.variants
         db.session.commit()
         app.logger.debug(f"Updated product: {product.product_name}, Image URLs: {product.product_image_urls}")
         return redirect(url_for('index'))
@@ -287,10 +366,23 @@ def delete_product_ui(product_id):
     app.logger.debug(f"Deleted product ID: {product_id}")
     return redirect(url_for('index'))
 
+@app.route('/delete-selected', methods=['POST'])
+@login_required
+def delete_selected():
+    product_ids = request.form.getlist('product_ids[]')
+    for product_id in product_ids:
+        product = Product.query.get(product_id)
+        if product:
+            db.session.delete(product)
+    db.session.commit()
+    app.logger.debug(f"Deleted products: {product_ids}")
+    return redirect(url_for('index'))
+
 # Existing API Routes
 @app.route('/add-product', methods=['POST'])
 def add_product():
     data = request.get_json()
+    variants = data.get('variants', [])
     product = Product(
         category=data.get('category'),
         product_name=data.get('product_name'),
@@ -314,8 +406,7 @@ def add_product():
         rubber_length=data.get('rubber_length'),
         rubber_thickness=data.get('rubber_thickness'),
         rubber_description=data.get('rubber_description'),
-        variant_name=data.get('variant_name'),
-        variant_price=data.get('variant_price')
+        variants=json.dumps(variants) if variants else None
     )
     db.session.add(product)
     db.session.commit()
@@ -366,8 +457,7 @@ def update_product(product_id):
     product.rubber_length = data.get('rubber_length', product.rubber_length)
     product.rubber_thickness = data.get('rubber_thickness', product.rubber_thickness)
     product.rubber_description = data.get('rubber_description', product.rubber_description)
-    product.variant_name = data.get('variant_name', product.variant_name)
-    product.variant_price = data.get('variant_price', product.variant_price)
+    product.variants = json.dumps(data.get('variants', json.loads(product.variants) if product.variants else []))
     db.session.commit()
     app.logger.debug(f"API: Updated product ID: {product_id}")
     return jsonify({"message": "Product updated"}), 200
@@ -390,8 +480,7 @@ def search_products():
         Product.category.ilike(f'%{query}%') |
         Product.short_description.ilike(f'%{query}%') |
         Product.long_description.ilike(f'%{query}%') |
-        Product.rubber_description.ilike(f'%{query}%') |
-        Product.variant_name.ilike(f'%{query}%')
+        Product.rubber_description.ilike(f'%{query}%')
     ).paginate(page=page, per_page=per_page, error_out=False)
     return jsonify({
         "products": [p.to_dict() for p in search_results_pagination.items],

@@ -9,55 +9,46 @@
 </head>
 
 <body class="bg-gray-100">
-    <nav class="bg-white p-4 shadow">
-        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-            <!-- Logo and Navigation Links -->
-            <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6">
-                <img src="{{ url_for('static', filename='images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg') }}"
-                    alt="Logo" class="h-8 sm:h-10 w-auto">
-                <div class="flex space-x-4">
-                    <a href="{{ url_for('index') }}"
-                        class="text-gray-800 font-semibold hover:text-blue-600 text-sm sm:text-base">Home</a>
-                    <a href="{{ url_for('index') }}"
-                        class="text-gray-800 font-semibold hover:text-blue-600 text-sm sm:text-base">Store</a>
+    <nav class="bg-white text-blue-600 p-4 shadow">
+        <div class="container mx-auto flex justify-between items-center">
+            <!-- Left: Logo and Navigation -->
+            <div class="flex items-center space-x-6">
+                <!-- Logo -->
+                <a href="/">
+                    <img src="/static/images/d1ac29d9-3a91-478e-8cbf-130a3ee321c7.jpeg" alt="Logo" class="h-8 w-auto">
+                </a>
+                <!-- Nav Links -->
+                <div class="space-x-4">
+                    <a href="/" class="hover:underline">Home</a>
+                    <a href="/store" class="hover:underline">Store</a>
                 </div>
             </div>
-            <!-- Auth Links -->
-            <div class="flex space-x-4">
-                <a href="{{ url_for('login') }}"
-                    class="text-gray-800 font-semibold hover:text-blue-600 text-sm sm:text-base">Login</a>
-                <a href="{{ url_for('register') }}"
-                    class="text-gray-800 font-semibold hover:text-green-600 text-sm sm:text-base">Register</a>
+    
+            <!-- Right: Auth Links -->
+            <div class="space-x-4">
+                <a href="/login" class="hover:underline">Login</a>
+                <a href="/register" class="hover:underline">Register</a>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto mt-4 sm:mt-8 p-4">
-        <h1 class="text-xl sm:text-2xl font-bold mb-4 text-center sm:text-left">Register</h1>
-
-        <form method="POST" class="bg-white p-4 sm:p-6 rounded shadow-md max-w-md mx-auto sm:max-w-none">
+    <div class="container mx-auto p-6">
+        <h1 class="text-2xl font-bold mb-4">Register</h1>
+        <form method="POST" class="bg-white p-6 rounded shadow max-w-md mx-auto">
             {% if error %}
-            <p class="text-red-600 mb-4 text-sm sm:text-base">{{ error }}</p>
+            <p class="text-red-600 mb-4">{{ error }}</p>
             {% endif %}
             <div class="mb-4">
-                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-                <input type="text" id="username" name="username"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 sm:p-3 text-sm sm:text-base"
-                    required>
+                <label for="username" class="block text-sm font-medium">Username</label>
+                <input type="text" id="username" name="username" class="w-full border rounded p-2" required>
             </div>
-
             <div class="mb-4">
-                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="password" name="password"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 sm:p-3 text-sm sm:text-base"
-                    required>
+                <label for="password" class="block text-sm font-medium">Password</label>
+                <input type="password" id="password" name="password" class="w-full border rounded p-2" required>
             </div>
-
-            <div class="flex flex-col sm:flex-row justify-between space-y-2 sm:space-y-0 sm:space-x-4">
-                <button type="submit"
-                    class="bg-blue-600 text-white px-4 py-2 rounded text-sm sm:text-base w-full sm:w-auto">Register</button>
-                <a href="{{ url_for('login') }}"
-                    class="bg-gray-600 text-white px-4 py-2 rounded text-center text-sm sm:text-base w-full sm:w-auto">Cancel</a>
+            <div class="flex space-x-4">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Register</button>
+                <a href="/login" class="bg-gray-600 text-white px-4 py-2 rounded">Cancel</a>
             </div>
         </form>
     </div>
