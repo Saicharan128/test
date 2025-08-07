@@ -227,13 +227,15 @@ def add_product_ui():
         variants = []
         variant_names = data.getlist('variant_name[]')
         variant_prices = data.getlist('variant_price[]')
-        for name, price in zip(variant_names, variant_prices):
+        variant_skus = data.getlist('variant_sku[]')
+        for name, price, sku in zip(variant_names, variant_prices, variant_skus):
             if name and price:
                 try:
-                    variants.append({"name": name, "price": float(price)})
+                    variants.append({"name": name, "price": float(price), "sku": sku})
                 except ValueError:
                     app.logger.error(f"Invalid variant price: {price}")
         app.logger.debug(f"Variants: {variants}")
+
 
         product = Product(
             category=data.get('category'),
@@ -320,13 +322,15 @@ def edit_product_ui(product_id):
         variants = []
         variant_names = data.getlist('variant_name[]')
         variant_prices = data.getlist('variant_price[]')
-        for name, price in zip(variant_names, variant_prices):
+        variant_skus = data.getlist('variant_sku[]')
+        for name, price, sku in zip(variant_names, variant_prices, variant_skus):
             if name and price:
                 try:
-                    variants.append({"name": name, "price": float(price)})
+                    variants.append({"name": name, "price": float(price), "sku": sku})
                 except ValueError:
                     app.logger.error(f"Invalid variant price: {price}")
         app.logger.debug(f"Variants: {variants}")
+
 
         product.category = data.get('category', product.category)
         product.product_name = data.get('product_name', product.product_name)

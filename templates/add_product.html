@@ -122,8 +122,9 @@
             const div = document.createElement('div');
             div.className = 'variant-row';
             div.innerHTML = `
-                <input type="text" name="variant_name[]" class="w-1/2 border rounded p-2" placeholder="Variant Name">
-                <input type="number" name="variant_price[]" class="w-1/2 border rounded p-2" placeholder="Variant Price" step="0.01">
+                <input type="text" name="variant_name[]" class="w-1/3 border rounded p-2" placeholder="Variant Name">
+                <input type="number" name="variant_price[]" class="w-1/3 border rounded p-2" placeholder="Variant Price" step="0.01">
+                <input type="text" name="variant_sku[]" class="w-1/3 border rounded p-2" placeholder="Variant SKU">
                 <button type="button" onclick="this.parentElement.remove(); console.log('Removed variant')" class="bg-red-600 text-white px-2 py-1 rounded">Remove</button>
             `;
             container.appendChild(div);
